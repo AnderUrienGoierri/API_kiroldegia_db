@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -7,33 +7,14 @@ namespace API_kiroldegia_db.Controllers;
 
 [ApiController]
 [Route("api/erreserbak")]
-public class ErreserbakKontroladorea : ControllerBase
+public class ErreserbakKontroladorea : BaseApiKontroladorea
 {
-    private readonly IConfiguration _config;
     private readonly ILogger<ErreserbakKontroladorea> _logger;
 
     public ErreserbakKontroladorea(IConfiguration config, ILogger<ErreserbakKontroladorea> logger)
+        : base(config)
     {
-        _config = config;
         _logger = logger;
-    }
-
-    private async Task<MySqlConnection> SortuKonexioaAsync()
-    {
-        string? katea = _config.GetConnectionString("Kiroldegia");
-        try
-        {
-            var kon = new MySqlConnection(katea);
-            await kon.OpenAsync();
-            return kon;
-        }
-        catch
-        {
-            string? rootKatea = _config.GetConnectionString("KiroldegiaRoot");
-            var kon = new MySqlConnection(rootKatea);
-            await kon.OpenAsync();
-            return kon;
-        }
     }
 
     /// <summary>

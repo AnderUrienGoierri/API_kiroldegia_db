@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -22,7 +22,7 @@ public class PistakKontroladorea : BaseApiKontroladorea
     /// barneEzabatuak: true bada, Soft-Delete bidez ezabatutakoak ere erakutsiko ditu.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PistaDTO>>> LortuPistak([FromQuery] bool barneEzabatuak = true)
+    public async Task<IActionResult> LortuPistak([FromQuery] bool barneEzabatuak = true)
     {
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
@@ -49,14 +49,14 @@ public class PistakKontroladorea : BaseApiKontroladorea
                     : reader.GetDateTime("ezabaketa_data")
             });
         }
-        return Ok(pistak);
+        return SuccessList(pistak, 200, "Pistak ondo lortu dira.");
     }
 
     /// <summary>
     /// Pista bakarra ID bidez lortu.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<PistaDTO>> LortuPista(int id)
+    public async Task<IActionResult> LortuPista(int id)
     {
         await using var kon = await SortuKonexioaAsync();
         using var cmd = new MySqlCommand("SELECT id, izena, kirola, ezabatua, ezabaketa_data FROM pista WHERE id = @id;", kon);
@@ -64,9 +64,9 @@ public class PistakKontroladorea : BaseApiKontroladorea
 
         using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
-            return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen pistarik." });
+            return NotFoundError($"Ez da aurkitu {id} ID-a duen pistarik.");
 
-        return Ok(new PistaDTO
+        var p = new PistaDTO
         {
             Id = reader.GetInt32("id"),
             Izena = reader.GetString("izena"),
@@ -75,7 +75,8 @@ public class PistakKontroladorea : BaseApiKontroladorea
             EzabaketaData = reader.IsDBNull(reader.GetOrdinal("ezabaketa_data"))
                 ? null
                 : reader.GetDateTime("ezabaketa_data")
-        });
+        };
+        return Success(p, 200, "Pista ondo lortu da.");
     }
 
     /// <summary>
@@ -85,7 +86,7 @@ public class PistakKontroladorea : BaseApiKontroladorea
     public async Task<IActionResult> SortuPista([FromBody] PistaSortuDTO dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Izena) || string.IsNullOrWhiteSpace(dto.Kirola))
-            return BadRequest(new { mezua = "Izena eta kirola beharrezkoak dira." });
+            return BadRequestError("Izena eta kirola beharrezkoak dira.");
 
         await using var kon = await SortuKonexioaAsync();
         var cmd = new MySqlCommand("INSERT INTO pista (izena, kirola, ezabatua) VALUES (@izena, @kirola, FALSE);", kon);
@@ -93,12 +94,12 @@ public class PistakKontroladorea : BaseApiKontroladorea
         cmd.Parameters.AddWithValue("@kirola", dto.Kirola);
         await cmd.ExecuteNonQueryAsync();
 
-        return StatusCode(StatusCodes.Status201Created, new
+        return Created(new
         {
             id = cmd.LastInsertedId,
             mezua = "Pista ondo sortu da!",
             datuak = dto
-        });
+        }, 201, "Pista arrakastaz sortu da!");
     }
 
     /// <summary>
@@ -122,7 +123,7 @@ public class PistakKontroladorea : BaseApiKontroladorea
                 if (!await reader.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen pistarik." });
+                    return NotFoundError($"Ez da aurkitu {id} ID-a duen pistarik.");
                 }
 
                 pistaIzena = reader.GetString("izena");
@@ -130,7 +131,7 @@ public class PistakKontroladorea : BaseApiKontroladorea
                 if (!hard && jadaEzabatua)
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = $"[{id}] {pistaIzena} pista lehendik ere Soft-Delete eginda dago." });
+                    return BadRequestError($"[{id}] {pistaIzena} pista lehendik ere Soft-Delete eginda dago.");
                 }
             }
 
@@ -149,12 +150,12 @@ public class PistakKontroladorea : BaseApiKontroladorea
 
                 await tx.CommitAsync();
 
-                return Ok(new
+                return Success(new
                 {
                     id,
                     mota = "HARD_DELETE",
                     mezua = $"[{id}] {pistaIzena} pista eta bere {erreserbaKop} erreserba behin betiko ezabatu dira datu-basetik (Hard Delete)."
-                });
+                }, 200, "Pista fisikoki ezabatu da.");
             }
             else
             {
@@ -177,19 +178,19 @@ public class PistakKontroladorea : BaseApiKontroladorea
 
                 await tx.CommitAsync();
 
-                return Ok(new
+                return Success(new
                 {
                     id,
                     mota = "SOFT_DELETE",
                     desgaitutakoErreserbak = desgaituKop,
                     mezua = $"[{id}] {pistaIzena} pista logikoki ezabatu da (Soft Delete), eta erlazionatutako {desgaituKop} erreserba desgaitu dira."
-                });
+                }, 200, "Pista logikoki ezabatu da.");
             }
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea pista ezabatzean: " + ex.Message });
+            return ServerError("Errorea pista ezabatzean: " + ex.Message);
         }
     }
 
@@ -212,7 +213,7 @@ public class PistakKontroladorea : BaseApiKontroladorea
                 if (!await reader.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen pistarik." });
+                    return NotFoundError($"Ez da aurkitu {id} ID-a duen pistarik.");
                 }
 
                 pistaIzena = reader.GetString("izena");
@@ -220,7 +221,7 @@ public class PistakKontroladorea : BaseApiKontroladorea
                 if (!ezabatua)
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = "Pista hau aktibo dago jada, ez dago ezabatuta." });
+                    return BadRequestError("Pista hau aktibo dago jada, ez dago ezabatuta.");
                 }
             }
 
@@ -229,12 +230,12 @@ public class PistakKontroladorea : BaseApiKontroladorea
             await cmdRestore.ExecuteNonQueryAsync();
 
             await tx.CommitAsync();
-            return Ok(new { id, mezua = $"[{id}] {pistaIzena} pista arrakastaz berreskuratu da!" });
+            return Success(new { id, mezua = $"[{id}] {pistaIzena} pista arrakastaz berreskuratu da!" }, 200, "Pista berreskuratu da.");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea pista berreskuratzean: " + ex.Message });
+            return ServerError("Errorea pista berreskuratzean: " + ex.Message);
         }
     }
 }

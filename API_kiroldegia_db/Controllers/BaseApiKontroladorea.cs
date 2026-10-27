@@ -36,19 +36,36 @@ namespace API_kiroldegia_db.Controllers
             }
         }
 
+        // =====================================================================
+        // ARRAKASTA ERANTZUNAK (ApiResponse<T>)
+        // =====================================================================
+
         protected IActionResult Success<T>(T data, int code = 200, string message = "OK")
-            => Ok(ApiResponse<T>.Ok(data, code, message));
+            => StatusCode(code, ApiResponse<T>.Ok(data, code, message));
 
         protected IActionResult SuccessList<T>(List<T> datalist, int code = 200, string message = "OK")
-            => Ok(ApiResponse<T>.Ok(datalist, code, message));
+            => StatusCode(code, ApiResponse<T>.Ok(datalist, code, message));
 
         protected IActionResult Created<T>(T data, int code = 201, string message = "Zuzen sortu da")
-            => StatusCode(201, ApiResponse<T>.Ok(data, code, message));
+            => StatusCode(code, ApiResponse<T>.Ok(data, code, message));
+
+        // =====================================================================
+        // AKATS ERANTZUNAK (ApiError)
+        // =====================================================================
 
         protected IActionResult Error(int code, string type, string message, string? detail = null)
             => StatusCode(code, ApiError.Create(code, type, message, detail));
 
-        protected IActionResult NotFoundError(string detail)
-            => Error(404, "NOT_FOUND", "Eskatutakoa ez da aurkitu", detail);
+        protected IActionResult NotFoundError(string detail, string message = "Eskatutakoa ez da aurkitu")
+            => Error(404, "NOT_FOUND", message, detail);
+
+        protected IActionResult BadRequestError(string message, string? detail = null)
+            => Error(400, "BAD_REQUEST", message, detail);
+
+        protected IActionResult ConflictError(string message, string? detail = null)
+            => Error(409, "CONFLICT", message, detail);
+
+        protected IActionResult ServerError(string message, string? detail = null)
+            => Error(500, "SERVER_ERROR", message, detail);
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -22,7 +22,7 @@ public class BonoakKontroladorea : BaseApiKontroladorea
     /// Bono guztiak zerrendatu.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BonoDTO>>> LortuBonoak()
+    public async Task<IActionResult> LortuBonoak()
     {
         await using var kon = await SortuKonexioaAsync();
         using var cmd = new MySqlCommand("SELECT emaila, saioak FROM bonoak ORDER BY emaila;", kon);
@@ -36,14 +36,14 @@ public class BonoakKontroladorea : BaseApiKontroladorea
                 Saioak = reader.GetInt32("saioak")
             });
         }
-        return Ok(zerrenda);
+        return SuccessList(zerrenda, 200, "Bono guztiak ondo lortu dira.");
     }
 
     /// <summary>
     /// Email baten bonoa lortu.
     /// </summary>
     [HttpGet("{emaila}")]
-    public async Task<ActionResult<BonoDTO>> LortuBonoa(string emaila)
+    public async Task<IActionResult> LortuBonoa(string emaila)
     {
         await using var kon = await SortuKonexioaAsync();
         using var cmd = new MySqlCommand("SELECT emaila, saioak FROM bonoak WHERE emaila = @email;", kon);
@@ -51,13 +51,14 @@ public class BonoakKontroladorea : BaseApiKontroladorea
 
         using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
-            return NotFound(new { mezua = $"Ez da aurkitu '{emaila}' emaila duen bonorik." });
+            return NotFoundError($"Ez da aurkitu '{emaila}' emaila duen bonorik.");
 
-        return Ok(new BonoDTO
+        var bono = new BonoDTO
         {
             Emaila = reader.GetString("emaila"),
             Saioak = reader.GetInt32("saioak")
-        });
+        };
+        return Success(bono, 200, "Bonoa ondo lortu da.");
     }
 
     /// <summary>
@@ -67,7 +68,7 @@ public class BonoakKontroladorea : BaseApiKontroladorea
     public async Task<IActionResult> SortuBonoa([FromBody] BonoDTO dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Emaila) || dto.Saioak < 0)
-            return BadRequest(new { mezua = "Emaila eta saio kopuru egokia (>=0) beharrezkoak dira." });
+            return BadRequestError("Emaila eta saio kopuru egokia (>=0) beharrezkoak dira.");
 
         await using var kon = await SortuKonexioaAsync();
         await using var tx = await kon.BeginTransactionAsync(IsolationLevel.ReadCommitted);
@@ -84,12 +85,12 @@ public class BonoakKontroladorea : BaseApiKontroladorea
             await cmd.ExecuteNonQueryAsync();
             await tx.CommitAsync();
 
-            return Ok(new { mezua = $"Bonoa ondo eguneratu/sortu da ({dto.Emaila}: {dto.Saioak} saio)." });
+            return Created(new { mezua = $"Bonoa ondo eguneratu/sortu da ({dto.Emaila}: {dto.Saioak} saio)." }, 201, "Bonoa ondo sortu/eguneratu da.");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea bonoa sortzean: " + ex.Message });
+            return ServerError("Errorea bonoa sortzean: " + ex.Message);
         }
     }
 
@@ -100,7 +101,7 @@ public class BonoakKontroladorea : BaseApiKontroladorea
     public async Task<IActionResult> KargatuSaioak(string emaila, [FromBody] BonoKargatuDTO dto)
     {
         if (dto.Saioak <= 0)
-            return BadRequest(new { mezua = "Saio kopuruak positiboa izan behar du (>0)." });
+            return BadRequestError("Saio kopuruak positiboa izan behar du (>0).");
 
         await using var kon = await SortuKonexioaAsync();
         await using var tx = await kon.BeginTransactionAsync(IsolationLevel.ReadCommitted);
@@ -114,7 +115,7 @@ public class BonoakKontroladorea : BaseApiKontroladorea
             if (result == null)
             {
                 await tx.RollbackAsync();
-                return NotFound(new { mezua = $"Ez da aurkitu '{emaila}' emaila duen bonorik." });
+                return NotFoundError($"Ez da aurkitu '{emaila}' emaila duen bonorik.");
             }
 
             int egungoSaioak = Convert.ToInt32(result);
@@ -128,19 +129,19 @@ public class BonoakKontroladorea : BaseApiKontroladorea
 
             await tx.CommitAsync();
 
-            return Ok(new
+            return Success(new
             {
                 emaila,
                 aurrekoSaioak = egungoSaioak,
                 gehitutakoSaioak = dto.Saioak,
                 saioak = saioBerriak,
                 mezua = $"Bonoa arrakastaz kargatu da! Saio berriak: {saioBerriak}"
-            });
+            }, 200, "Bonoa arrakastaz kargatu da.");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea bonoa kargatzean: " + ex.Message });
+            return ServerError("Errorea bonoa kargatzean: " + ex.Message);
         }
     }
 
@@ -162,14 +163,14 @@ public class BonoakKontroladorea : BaseApiKontroladorea
             if (result == null)
             {
                 await tx.RollbackAsync();
-                return NotFound(new { mezua = $"Ez da aurkitu '{emaila}' duen bonorik." });
+                return NotFoundError($"Ez da aurkitu '{emaila}' duen bonorik.");
             }
 
             int saioak = Convert.ToInt32(result);
             if (saioak <= 0)
             {
                 await tx.RollbackAsync();
-                return Conflict(new { mezua = $"Ez daukazu saio nahikorik bonoan! Egungo saioak: {saioak}" });
+                return ConflictError($"Ez daukazu saio nahikorik bonoan! Egungo saioak: {saioak}");
             }
 
             // 2. Deskontatu saio 1
@@ -181,17 +182,17 @@ public class BonoakKontroladorea : BaseApiKontroladorea
 
             await tx.CommitAsync();
 
-            return Ok(new
+            return Success(new
             {
                 emaila,
                 saioak = geratzenDira,
                 mezua = $"Saio 1 erabili da. {geratzenDira} saio geratzen zaizkizu."
-            });
+            }, 200, "Saio 1 erabili da.");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea bonoa erabiltzean: " + ex.Message });
+            return ServerError("Errorea bonoa erabiltzean: " + ex.Message);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -22,7 +22,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
     /// Bidea: GET /api/bazkideak
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BazkideaDTO>>> LortuBazkideak([FromQuery] bool barneEzabatuak = true)
+    public async Task<IActionResult> LortuBazkideak([FromQuery] bool barneEzabatuak = true)
     {
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
@@ -53,7 +53,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 EzabaketaData = reader.IsDBNull(reader.GetOrdinal("ezabaketa_data")) ? null : reader.GetDateTime("ezabaketa_data")
             });
         }
-        return Ok(bazkideak);
+        return SuccessList(bazkideak, 200, "Bazkideak ondo lortu dira.");
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
     /// Bidea: GET /api/bazkideak/{id}
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<BazkideaDTO>> LortuBazkidea(int id)
+    public async Task<IActionResult> LortuBazkidea(int id)
     {
         await using var kon = await SortuKonexioaAsync();
         using var cmd = new MySqlCommand(@"
@@ -74,7 +74,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
         using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
         {
-            return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen bazkiderik." });
+            return NotFoundError($"Ez da aurkitu {id} ID-a duen bazkiderik.");
         }
 
         var b = new BazkideaDTO
@@ -86,7 +86,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
             BonoSaioak = reader.GetInt32("bono_saioak")
         };
 
-        return Ok(b);
+        return Success(b, 200, "Bazkidea ondo lortu da.");
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
     {
         if (string.IsNullOrWhiteSpace(dto.Izena) || string.IsNullOrWhiteSpace(dto.Abizena) || string.IsNullOrWhiteSpace(dto.Emaila))
         {
-            return BadRequest(new { mezua = "Izena, abizena eta emaila beharrezkoak dira." });
+            return BadRequestError("Izena, abizena eta emaila beharrezkoak dira.");
         }
 
         await using var kon = await SortuKonexioaAsync();
@@ -113,7 +113,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
             if (exist > 0)
             {
                 await tx.RollbackAsync();
-                return Conflict(new { mezua = $"'{dto.Emaila}' emaila duen bazkide bat badago jada erregistratuta." });
+                return ConflictError($"'{dto.Emaila}' emaila duen bazkide bat badago jada erregistratuta.");
             }
 
             var cmdInsert = new MySqlCommand(@"
@@ -139,7 +139,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
 
             await tx.CommitAsync();
 
-            return StatusCode(StatusCodes.Status201Created, new
+            return Created(new
             {
                 id = newId,
                 izena = dto.Izena.Trim(),
@@ -147,12 +147,12 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 emaila = dto.Emaila.Trim().ToLower(),
                 bonoSaioak = dto.HasierakoBonoa,
                 mezua = $"Bazkidea arrakastaz sortu da (ID: {newId})!"
-            });
+            }, 201, "Bazkidea arrakastaz sortu da!");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea bazkidea sortzean: " + ex.Message });
+            return ServerError("Errorea bazkidea sortzean: " + ex.Message);
         }
     }
 
@@ -178,7 +178,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 if (!await reader.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen bazkiderik." });
+                    return NotFoundError($"Ez da aurkitu {id} ID-a duen bazkiderik.");
                 }
                 izena = $"{reader.GetString("izena")} {reader.GetString("abizena")}";
                 jadaEzabatua = reader.GetBoolean("ezabatua");
@@ -190,7 +190,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 if (jadaEzabatua)
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = $"[{id}] {izena} bazkidea lehendik ere Soft-Delete eginda dago." });
+                    return BadRequestError($"[{id}] {izena} bazkidea lehendik ere Soft-Delete eginda dago.");
                 }
 
                 var cmdSoft = new MySqlCommand("UPDATE bazkidea SET ezabatua = TRUE, ezabaketa_data = NOW() WHERE id = @id;", kon, tx);
@@ -198,7 +198,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 await cmdSoft.ExecuteNonQueryAsync();
 
                 await tx.CommitAsync();
-                return Ok(new { mezua = $"[{id}] {izena} bazkidea logikoki ezabatu da (Soft Delete)." });
+                return Success(new { mezua = $"[{id}] {izena} bazkidea logikoki ezabatu da (Soft Delete)." }, 200, "Bazkidea logikoki ezabatu da.");
             }
             else
             {
@@ -210,7 +210,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 if (resCount > 0)
                 {
                     await tx.RollbackAsync();
-                    return Conflict(new { mezua = $"Ezin da [{id}] bazkidea behin betiko ezabatu: {resCount} erreserba ditu lotuta!" });
+                    return ConflictError($"Ezin da [{id}] bazkidea behin betiko ezabatu: {resCount} erreserba ditu lotuta!");
                 }
 
                 // Bazkidea fisikoki ezabatu
@@ -219,13 +219,13 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 await cmdDel.ExecuteNonQueryAsync();
 
                 await tx.CommitAsync();
-                return Ok(new { mezua = $"[{id}] {izena} bazkidea behin betiko ezabatu da (Hard Delete)." });
+                return Success(new { mezua = $"[{id}] {izena} bazkidea behin betiko ezabatu da (Hard Delete)." }, 200, "Bazkidea fisikoki ezabatu da.");
             }
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea bazkidea ezabatzean: " + ex.Message });
+            return ServerError("Errorea bazkidea ezabatzean: " + ex.Message);
         }
     }
 
@@ -250,7 +250,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
                 if (!await reader.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen bazkiderik." });
+                    return NotFoundError($"Ez da aurkitu {id} ID-a duen bazkiderik.");
                 }
                 izena = $"{reader.GetString("izena")} {reader.GetString("abizena")}";
                 ezabatua = reader.GetBoolean("ezabatua");
@@ -259,7 +259,7 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
             if (!ezabatua)
             {
                 await tx.RollbackAsync();
-                return BadRequest(new { mezua = $"[{id}] {izena} bazkidea jada aktibo dago, ez dago ezabatuta." });
+                return BadRequestError($"[{id}] {izena} bazkidea jada aktibo dago, ez dago ezabatuta.");
             }
 
             var cmdRestore = new MySqlCommand("UPDATE bazkidea SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
@@ -267,13 +267,12 @@ public class BazkideakKontroladorea : BaseApiKontroladorea
             await cmdRestore.ExecuteNonQueryAsync();
 
             await tx.CommitAsync();
-            return Ok(new { mezua = $"[{id}] {izena} bazkidea arrakastaz berreskuratu da!" });
+            return Success(new { mezua = $"[{id}] {izena} bazkidea arrakastaz berreskuratu da!" }, 200, "Bazkidea berreskuratu da.");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea bazkidea berreskuratzean: " + ex.Message });
+            return ServerError("Errorea bazkidea berreskuratzean: " + ex.Message);
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -22,7 +22,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
     /// barneEzabatuak: true bada, Soft-Delete bidez ezabatutakoak ere erakutsiko ditu.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ErreserbaDTO>>> LortuErreserbak([FromQuery] bool barneEzabatuak = true)
+    public async Task<IActionResult> LortuErreserbak([FromQuery] bool barneEzabatuak = true)
     {
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
@@ -61,14 +61,14 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
             });
         }
 
-        return Ok(emaitzak);
+        return SuccessList(emaitzak, 200, "Erreserbak ondo lortu dira.");
     }
 
     /// <summary>
     /// Erreserba bakarra ID bidez lortu.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<ErreserbaDTO>> LortuErreserba(int id)
+    public async Task<IActionResult> LortuErreserba(int id)
     {
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
@@ -84,9 +84,9 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
         cmd.Parameters.AddWithValue("@id", id);
         using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
-            return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen erreserbarik." });
+            return NotFoundError($"Ez da aurkitu {id} ID-a duen erreserbarik.");
 
-        return Ok(new ErreserbaDTO
+        var erreserba = new ErreserbaDTO
         {
             Id = reader.GetInt32("id"),
             PistaId = reader.GetInt32("pista_id"),
@@ -102,7 +102,9 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 ? null
                 : reader.GetDateTime("ezabaketa_data"),
             Sortua = reader.GetDateTime("sortua")
-        });
+        };
+
+        return Success(erreserba, 200, "Erreserba ondo lortu da.");
     }
 
     /// <summary>
@@ -111,7 +113,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
     /// barneEzabatuak: true bada, ezabatutako erreserbak dituztenak ere barne hartzen ditu.
     /// </summary>
     [HttpGet("bazkideak")]
-    public async Task<ActionResult<IEnumerable<BazkideaDTO>>> LortuErreserbadunBazkideak([FromQuery] bool barneEzabatuak = true)
+    public async Task<IActionResult> LortuErreserbadunBazkideak([FromQuery] bool barneEzabatuak = true)
     {
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
@@ -136,7 +138,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 Emaila = reader.IsDBNull(reader.GetOrdinal("emaila")) ? null : reader.GetString("emaila")
             });
         }
-        return Ok(bazkideak);
+        return SuccessList(bazkideak, 200, "Erreserbadun bazkideak ondo lortu dira.");
     }
 
     /// <summary>
@@ -170,7 +172,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
         }
 
         if (dto.PistaId <= 0 || dto.BazkideaId <= 0 || string.IsNullOrWhiteSpace(dto.Data) || string.IsNullOrWhiteSpace(dto.Ordua))
-            return BadRequest(new { mezua = "Datu guztiak beharrezkoak dira (pistaId, bazkideaId, data, ordua)." });
+            return BadRequestError("Datu guztiak beharrezkoak dira (pistaId, bazkideaId, data, ordua).");
 
         await using var tx = await kon.BeginTransactionAsync(IsolationLevel.ReadCommitted);
 
@@ -185,14 +187,14 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 if (!await readerP.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {dto.PistaId} ID-a duen pistarik." });
+                    return NotFoundError($"Ez da aurkitu {dto.PistaId} ID-a duen pistarik.");
                 }
                 pistaIzena = readerP.GetString("izena");
                 bool ezabatua = readerP.GetBoolean("ezabatua");
                 if (ezabatua)
                 {
                     await tx.RollbackAsync();
-                    return Conflict(new { mota = "PISTA_DESGAITUTA", mezua = $"[{dto.PistaId}] '{pistaIzena}' pista desgaituta (Soft-Delete) dago! Ezin da erreserbarik egin bertan." });
+                    return ConflictError($"[{dto.PistaId}] '{pistaIzena}' pista desgaituta (Soft-Delete) dago! Ezin da erreserbarik egin bertan.");
                 }
             }
 
@@ -208,7 +210,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 if (emailObj == null || emailObj == DBNull.Value || string.IsNullOrWhiteSpace(emailObj.ToString()))
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = "Bazkide honek ez dauka emailarik erregistratuta bonoa erabiltzeko." });
+                    return BadRequestError("Bazkide honek ez dauka emailarik erregistratuta bonoa erabiltzeko.");
                 }
                 bazkideEmaila = emailObj.ToString()!;
 
@@ -219,14 +221,14 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 if (saioakObj == null)
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = $"'{bazkideEmaila}' emailarekin ez dago bonorik erregistratuta." });
+                    return NotFoundError($"'{bazkideEmaila}' emailarekin ez dago bonorik erregistratuta.");
                 }
 
                 int saioak = Convert.ToInt32(saioakObj);
                 if (saioak <= 0)
                 {
                     await tx.RollbackAsync();
-                    return Conflict(new { mota = "BONO_SALDOA", mezua = $"Ez daukazu saio nahikorik bonoan! Egungo saioak: {saioak}. Mesedez kargatu bonoa lehenago." });
+                    return ConflictError($"Ez daukazu saio nahikorik bonoan! Egungo saioak: {saioak}. Mesedez kargatu bonoa lehenago.");
                 }
 
                 // Saio 1 deskontatu
@@ -251,7 +253,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
             if (kopurua > 0)
             {
                 await tx.RollbackAsync();
-                return Conflict(new { mota = "PISTA_OKUPATUTA", mezua = $"Pista [{dto.PistaId}] eta ordu horretan ({dto.Data} {dto.Ordua}) jada erreserba aktibo bat eginda dago! Ezin da erreserbatu." });
+                return ConflictError($"Pista [{dto.PistaId}] eta ordu horretan ({dto.Data} {dto.Ordua}) jada erreserba aktibo bat eginda dago! Ezin da erreserbatu.");
             }
 
             // 4. Libre badago: erreserba txertatu transakzio barruan
@@ -283,7 +285,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 ? $" ({itxaronMs / 1000}s-ko blokeoa simulatu da)." 
                 : "";
 
-            return StatusCode(StatusCodes.Status201Created, new
+            return Created(new
             {
                 id = idBerria,
                 mezua = "Erreserba arrakastaz sortu da!" + simulazioMezua + bonoMezua,
@@ -292,28 +294,27 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 blokeoaSimulatua = itxaronMs > 0,
                 itxaronMs = itxaronMs,
                 datuak = dto
-            });
+            }, 201, "Erreserba arrakastaz sortu da!");
         }
         catch (MySqlException ex) when (ex.Number == 1062) // UNIQUE constraint apurtu bada
         {
             await tx.RollbackAsync();
-            return Conflict(new { mota = "KONKURRENTZIA", mezua = "Konkurrentzia-gatazka (MySQL 1062): Beste erabiltzaile batek aldi berean pista eta ordu bera erreserbatu berri du." });
+            return ConflictError("Konkurrentzia-gatazka (MySQL 1062): Beste erabiltzaile batek aldi berean pista eta ordu bera erreserbatu berri du.");
         }
         catch (MySqlException ex) when (ex.Number == 1213) // Deadlock
         {
             await tx.RollbackAsync();
-            return Conflict(new { mota = "KONKURRENTZIA", mezua = "Konkurrentzia-blokeoa (MySQL 1213): Deadlock (elkar-blokeoa) gertatu da aldi bereko transakzioen artean. Saiatu berriro." });
+            return ConflictError("Konkurrentzia-blokeoa (MySQL 1213): Deadlock (elkar-blokeoa) gertatu da aldi bereko transakzioen artean. Saiatu berriro.");
         }
         catch (MySqlException ex) when (ex.Number == 1205) // Lock wait timeout
         {
             await tx.RollbackAsync();
-            return Conflict(new { mota = "KONKURRENTZIA", mezua = "Konkurrentzia-blokeoa (MySQL 1205): Blokeoaren denbora-muga gainditu da (Lock wait timeout exceeded). Beste transakzio batek pista blokeatuta mantentzen du." });
+            return ConflictError("Konkurrentzia-blokeoa (MySQL 1205): Blokeoaren denbora-muga gainditu da (Lock wait timeout exceeded). Beste transakzio batek pista blokeatuta mantentzen du.");
         }
         catch (Exception ex)
-
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea transakzioan: " + ex.Message });
+            return ServerError("Errorea transakzioan: " + ex.Message);
         }
     }
 
@@ -338,14 +339,14 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 if (!await reader.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen erreserbarik." });
+                    return NotFoundError($"Ez da aurkitu {id} ID-a duen erreserbarik.");
                 }
 
                 bool jadaEzabatua = reader.GetBoolean("ezabatua");
                 if (!hard && jadaEzabatua)
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = $"[{id}] erreserba lehendik ere Soft-Delete eginda dago." });
+                    return BadRequestError($"[{id}] erreserba lehendik ere Soft-Delete eginda dago.");
                 }
             }
 
@@ -356,12 +357,12 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 await cmdHard.ExecuteNonQueryAsync();
 
                 await tx.CommitAsync();
-                return Ok(new
+                return Success(new
                 {
                     id,
                     mota = "HARD_DELETE",
                     mezua = $"[{id}] erreserba behin betiko ezabatu da (Hard Delete) datu-basetik."
-                });
+                }, 200, "Erreserba fisikoki ezabatu da.");
             }
             else
             {
@@ -373,18 +374,18 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 await cmdSoft.ExecuteNonQueryAsync();
 
                 await tx.CommitAsync();
-                return Ok(new
+                return Success(new
                 {
                     id,
                     mota = "SOFT_DELETE",
                     mezua = $"[{id}] erreserba logikoki ezabatu da (Soft Delete). Pista eta ordu hori libre geratu da besteentzat."
-                });
+                }, 200, "Erreserba logikoki ezabatu da.");
             }
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea ezabatzean: " + ex.Message });
+            return ServerError("Errorea ezabatzean: " + ex.Message);
         }
     }
 
@@ -411,13 +412,13 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 if (!await reader.ReadAsync())
                 {
                     await tx.RollbackAsync();
-                    return NotFound(new { mezua = $"Ez da aurkitu {id} ID-a duen erreserbarik." });
+                    return NotFoundError($"Ez da aurkitu {id} ID-a duen erreserbarik.");
                 }
                 ezabatua = reader.GetBoolean("ezabatua");
                 if (!ezabatua)
                 {
                     await tx.RollbackAsync();
-                    return BadRequest(new { mezua = "Erreserba hau aktibo dago jada, ez dago ezabatuta." });
+                    return BadRequestError("Erreserba hau aktibo dago jada, ez dago ezabatuta.");
                 }
                 pistaId = reader.GetInt32("pista_id");
                 data = Convert.ToDateTime(reader["data"]).ToString("yyyy-MM-dd");
@@ -431,7 +432,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
             if (pistaEzabatua)
             {
                 await tx.RollbackAsync();
-                return Conflict(new { mezua = "Ezin da erreserba berreskuratu: pista bera desgaituta (Soft Delete) dago." });
+                return ConflictError("Ezin da erreserba berreskuratu: pista bera desgaituta (Soft Delete) dago.");
             }
 
             // Hutsunea tartean hartuta ote dagoen begiratu
@@ -448,7 +449,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
             if (okupatua > 0)
             {
                 await tx.RollbackAsync();
-                return Conflict(new { mezua = "Ezin da berreskuratu: beste erreserba aktibo bat dago pista eta ordu berean." });
+                return ConflictError("Ezin da berreskuratu: beste erreserba aktibo bat dago pista eta ordu berean.");
             }
 
             // Restore egin
@@ -457,12 +458,12 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
             await cmdRestore.ExecuteNonQueryAsync();
 
             await tx.CommitAsync();
-            return Ok(new { id, mezua = $"[{id}] erreserba arrakastaz berreskuratu da!" });
+            return Success(new { id, mezua = $"[{id}] erreserba arrakastaz berreskuratu da!" }, 200, "Erreserba berreskuratu da.");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mezua = "Errorea berreskuratzean: " + ex.Message });
+            return ServerError("Errorea berreskuratzean: " + ex.Message);
         }
     }
 
@@ -475,6 +476,6 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
         await using var kon = await SortuKonexioaAsync();
         var cmd = new MySqlCommand("DELETE FROM erreserba;", kon);
         int kopurua = await cmd.ExecuteNonQueryAsync();
-        return Ok(new { mezua = $"Erreserba guztiak ezabatu dira ({kopurua} errenkada)." });
+        return Success(new { mezua = $"Erreserba guztiak ezabatu dira ({kopurua} errenkada)." }, 200, "Erreserbak garbitu dira.");
     }
 }

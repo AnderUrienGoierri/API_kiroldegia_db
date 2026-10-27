@@ -2,6 +2,8 @@
 
 ASP.NET Core Web API proiektua, MySQL datu-basearekin (`kiroldegia`), transakzio atomikoekin (`SELECT ... FOR UPDATE`), Soft/Hard Delete eta bonoen kudeaketarekin.
 
+- **Biltegia:** [https://github.com/AnderUrienGoierri/API_kiroldegia_db](https://github.com/AnderUrienGoierri/API_kiroldegia_db)
+
 ---
 
 ## Ezaugarriak
@@ -48,4 +50,5 @@ ASP.NET Core Web API proiektua, MySQL datu-basearekin (`kiroldegia`), transakzio
    Lehenetsita `http://localhost:5089` helbidean entzungo du.
 
 3. **Postman probak:**
-   Inportatu `Kiroldegia_API.postman_collection.json` fitxategia Postman-en proba guztiak egiteko. Xehetasunak `POSTMAN_GIDA.md` fitxategian.
+   Inportatu `Kiroldegia_API.postman_collection.json` fitxategia Postman-en proba guztiak egiteko.
+   Datu-basearen konexio-probak eta pausoz pausoko gida xehea ikusteko: 👉 **[POSTMAN_GIDA.md](./POSTMAN_GIDA.md)**.

@@ -4,17 +4,25 @@ Gida honetan **Ordiziako Kiroldegiaren REST APIa** Postman tresnarekin nola prob
 
 ---
 
-## 1. Zergatik eman du `404 Not Found` zure pantailako irudian?
+## 1. Datu-Basearekiko Konexioa Egiaztatzea Postman Bidez
 
-Zure Postman pantailan helbide hau jarri duzu:
-```text
-GET http://localhost:5089/
-```
+APIa martxan jarri ondoren, Postman erabiliko dugu datu-basearekin (MySQL) komunikazioa egokia dela eta datuak ondo irakurtzen direla ziurtatzeko:
 
-REST API batean eragiketak **bide zehatzetan (endpoint)** kokatzen dira (adibidez, `/api/pistak` edo `/api/erreserbak`).
+1. Ireki **Postman** eta sortu eskaera berri bat (**New Request**).
+2. Metodoa: hautatu **`GET`**.
+3. Idatzi datu-baseko taulak irakurtzeko endpoint-a:
+   ```text
+   http://localhost:5089/api/pistak
+   ```
+   *(Edo `http://localhost:5089/api/bazkideak`)*
+4. Egin klik **`Send`** botoian.
 
-> [!NOTE]
-> Orain APIaren erroan (`http://localhost:5089/`) informazio-erantzun bat gehitu dugu; beraz, `Send` sakatzen baduzu, **`200 OK`** emango dizu eta bide guztiak zerrendatuko dizkizu.
+### Nola jakin datu-basearekin ondo konektatzen ari dela?
+* **Konexio arrakastatsua (`200 OK`):** 
+  * Behean `200 OK` egoera-kodea jasoko duzu eta erantzunaren gorputzean (**Body**) MySQL datu-basean gordeta dauden pistak agertuko dira JSON formatuan (`Tenisa 1`, `Tenisa 2`, `Padel 1`, `Frontoia`).
+  * Horrek baieztatzen du APIa datu-basearekin ondo konektatu dela eta kontsultak arazorik gabe exekutatzen ari direla.
+* **Konexio okerra (`500 Internal Server Error`):**
+  * Datu-baseko zerbitzaria (MySQL) itzalita badago, ataka okerra bada edo konexio-kateko kredentzialak gaizki badaude, APIak zerbitzari-errore bat (`500`) itzuliko du datu-baseko konexio-akatsekin.
 
 ---
 
@@ -55,7 +63,7 @@ APIak `http://localhost:5089` (eta `http://localhost:5262`) helbideetan entzuten
 
 ## 4. Eskaera garrantzitsuenak nola konfiguratu Postman-en
 
-### A) Pistak ikusi (GET)
+### A) Pistak ikusi eta DB konexioa baieztatu (GET)
 1. Hautatu **`GET`** goitibeherako menuan.
 2. Idatzi URLa:
    ```text

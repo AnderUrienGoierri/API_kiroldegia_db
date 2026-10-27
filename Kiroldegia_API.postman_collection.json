@@ -2,230 +2,599 @@
   "info": {
     "_postman_id": "7f8b9a10-2345-4cde-8901-234567abcdef",
     "name": "Ordiziako Kiroldegia API",
-    "description": "Ordiziako Kiroldegiko REST API (MySQL kiroldegia_db, Transakzioak, Soft/Hard Delete eta Bonoak)",
+    "description": "Ordiziako Kiroldegiko REST API (MySQL kiroldegia_db, Transakzioak, Soft/Hard Delete eta Bonoak). Metodo eta taula guztien arabera antolatuta.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "00. APIaren Egoera (Root)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": [""]
-        },
-        "description": "APIa martxan dagoela eta dauden endpoint-ak egiaztatzeko."
-      }
-    },
-    {
-      "name": "01. Pistak Lortu",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/pistak?barneEzabatuak=true",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "pistak"],
-          "query": [
-            {
-              "key": "barneEzabatuak",
-              "value": "true",
-              "description": "true = Soft Delete egindako pistak ere erakutsi"
-            }
-          ]
-        },
-        "description": "Kiroldegiko 4 pista guztiak lortzen ditu (Tenisa 1, Tenisa 2, Padel 1, Frontoia)."
-      }
-    },
-    {
-      "name": "02. Erreserbak Lortu",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak?barneEzabatuak=true",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak"],
-          "query": [
-            {
-              "key": "barneEzabatuak",
-              "value": "true",
-              "description": "true = Soft-Delete bidez ezabatutakoak ere erakutsi"
-            }
-          ]
-        },
-        "description": "Datu-basean dauden erreserba guztiak zerrendatzen ditu."
-      }
-    },
-    {
-      "name": "03. Bazkideak Lortu",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak/bazkideak",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak", "bazkideak"]
-        },
-        "description": "Bazkideen zerrenda (ID, Izena, Abizena, Emaila)."
-      }
-    },
-    {
-      "name": "04. Bonoak Lortu",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/bonoak",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "bonoak"]
-        },
-        "description": "Bono guztien saldoa (emaila eta geratzen diren saioak)."
-      }
-    },
-    {
-      "name": "05. Erreserba Sortu (Transakzioa + Bonoa deskontatu)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pistaId\": 1,\n  \"bazkideaId\": 1,\n  \"data\": \"2026-10-25\",\n  \"ordua\": \"18:00:00\",\n  \"erabiliBonoa\": true\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
+      "name": "1. GET Eskaerak (Irakurketa)",
+      "description": "Datu-baseko taula guztietako datuak kontsultatzeko eskaerak.",
+      "item": [
+        {
+          "name": "GET 00. APIaren Egoera (Root)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": [""]
+            },
+            "description": "APIa martxan dagoela eta endpoint guztiak eskuragarri daudela egiaztatzen du."
           }
         },
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak"]
-        },
-        "description": "Erreserba berria txertatzen du transakzio atomiko batean (FOR UPDATE blokeoarekin eta bonoaren saio 1 kenduz)."
-      }
-    },
-    {
-      "name": "06. Erreserba Ezabatu (SOFT DELETE - Logikoa)",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak/1?hard=false",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak", "1"],
-          "query": [
-            {
-              "key": "hard",
-              "value": "false",
-              "description": "false = Soft Delete (ezabatua=TRUE)"
-            }
-          ]
-        },
-        "description": "Erreserba logikoki ezabatzen du: datu-basean geratzen da (ezabatua=TRUE), baina pista eta ordua libre geratzen dira."
-      }
-    },
-    {
-      "name": "07. Erreserba Berreskuratu (RESTORE)",
-      "request": {
-        "method": "PUT",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak/1/restore",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak", "1", "restore"]
-        },
-        "description": "Soft Delete egindako erreserba berrezartzen du (ezabatua=FALSE), betiere tartean beste batek pista hartu ez badu."
-      }
-    },
-    {
-      "name": "08. Erreserba Ezabatu (HARD DELETE - Fisikoa)",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak/1?hard=true",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak", "1"],
-          "query": [
-            {
-              "key": "hard",
-              "value": "true",
-              "description": "true = Behin betiko ezabaketa (DELETE FROM)"
-            }
-          ]
-        },
-        "description": "Erreserba datu-basetik fisikoki ezabatzen du."
-      }
-    },
-    {
-      "name": "09. Bonoari Saioak Kargatu",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"saioak\": 5\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
+        {
+          "name": "GET 01. Pistak Lortu (Guztiak)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/pistak?barneEzabatuak=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "pistak"],
+              "query": [
+                {
+                  "key": "barneEzabatuak",
+                  "value": "true",
+                  "description": "true = Soft-Delete bidez ezabatutakoak ere erakutsi"
+                }
+              ]
+            },
+            "description": "Kiroldegiko pista guztiak lortzen ditu (Tenisa 1, Tenisa 2, Padel 1, Frontoia...)."
           }
         },
-        "url": {
-          "raw": "http://localhost:5089/api/bonoak/ane@goierri.eus/kargatu",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "bonoak", "ane@goierri.eus", "kargatu"]
+        {
+          "name": "GET 02. Pista Bakarra Lortu (ID bidez)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/pistak/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "pistak", "1"]
+            },
+            "description": "Pista zehatz baten informazioa lortzen du bere IDaren bidez."
+          }
         },
-        "description": "Bono bati saio gehigarriak gehitzen dizkio transakzioan (FOR UPDATE blokeoarekin)."
-      }
+        {
+          "name": "GET 03. Bazkideak Lortu (Guztiak + Bono Saldoak)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bazkideak?barneEzabatuak=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bazkideak"],
+              "query": [
+                {
+                  "key": "barneEzabatuak",
+                  "value": "true",
+                  "description": "true = Soft Delete egindako bazkideak ere erakutsi"
+                }
+              ]
+            },
+            "description": "Sistemako bazkide guztiak zerrendatzen ditu, bakoitzaren bono-saioen saldoarekin batera."
+          }
+        },
+        {
+          "name": "GET 04. Bazkide Bakarra Lortu (ID bidez)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bazkideak/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bazkideak", "1"]
+            },
+            "description": "Bazkide baten fitxa lortzen du bere ID bidez (izena, abizena, emaila eta bono saioak)."
+          }
+        },
+        {
+          "name": "GET 05. Bonoak Lortu (Guztiak)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bonoak",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bonoak"]
+            },
+            "description": "Bono guztien zerrenda lortzen du (bazkide bakoitzaren emaila eta eskuragarri dituen saioak)."
+          }
+        },
+        {
+          "name": "GET 06. Bono Bakarra Lortu (Email bidez)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bonoak/ane@goierri.eus",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bonoak", "ane@goierri.eus"]
+            },
+            "description": "Email zehatz baten bonoaren saldoa kontsultatzen du."
+          }
+        },
+        {
+          "name": "GET 07. Erreserbak Lortu (Guztiak)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak?barneEzabatuak=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak"],
+              "query": [
+                {
+                  "key": "barneEzabatuak",
+                  "value": "true",
+                  "description": "true = Soft-Delete bidez ezabatutakoak ere barne hartu"
+                }
+              ]
+            },
+            "description": "Datu-basean dauden erreserba guztiak zerrendatzen ditu (pista, bazkidea, data eta ordua)."
+          }
+        },
+        {
+          "name": "GET 08. Erreserba Bakarra Lortu (ID bidez)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak", "1"]
+            },
+            "description": "Erreserba baten xehetasun guztiak lortzen ditu bere IDaren bidez."
+          }
+        },
+        {
+          "name": "GET 09. Erreserbadun Bazkideak Lortu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak/bazkideak?barneEzabatuak=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak", "bazkideak"],
+              "query": [
+                {
+                  "key": "barneEzabatuak",
+                  "value": "true",
+                  "description": "true = ezabatutako erreserbak dituztenak ere erakutsi"
+                }
+              ]
+            },
+            "description": "Soilik gutxienez erreserba bat egin duten bazkideak itzultzen ditu."
+          }
+        }
+      ]
     },
     {
-      "name": "10. Erreserba Taula Garbitu",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:5089/api/erreserbak/garbitu",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5089",
-          "path": ["api", "erreserbak", "garbitu"]
+      "name": "2. POST Eskaerak (Sortzea & Transakzioak)",
+      "description": "Datuak sortzeko eta transakzio seguruak (ACID / FOR UPDATE) burutzeko eskaerak.",
+      "item": [
+        {
+          "name": "POST 01. Pista Berria Sortu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"izena\": \"Padel 2\",\n  \"kirola\": \"Padela\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5089/api/pistak",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "pistak"]
+            },
+            "description": "Pista berri bat txertatzen du datu-basean."
+          }
         },
-        "description": "Erreserba guztiak ezabatzen ditu probak berriro hutsetik hasteko."
-      }
+        {
+          "name": "POST 02. Bazkide Berria Sortu (Bonoarekin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"izena\": \"Mikel\",\n  \"abizena\": \"Zubizarreta\",\n  \"emaila\": \"mikel@goierri.eus\",\n  \"hasierakoBonoa\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5089/api/bazkideak",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bazkideak"]
+            },
+            "description": "Bazkide berria sortzen du eta transakzio berean hasierako bonoa kargatzen dio."
+          }
+        },
+        {
+          "name": "POST 03. Bono Berria Sortu edo Erosi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emaila\": \"mikel@goierri.eus\",\n  \"saioak\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5089/api/bonoak",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bonoak"]
+            },
+            "description": "Bono berria erregistratzen du edo lehendik badago saioak gehitzen dizkio."
+          }
+        },
+        {
+          "name": "POST 04. Bono Saio 1 Kontsumitu (Transakzioa)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bonoak/ane@goierri.eus/erabili",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bonoak", "ane@goierri.eus", "erabili"]
+            },
+            "description": "Bonoaren saio 1 deskontatzen du FOR UPDATE blokeoarekin, saldo negatiboak ekiditeko."
+          }
+        },
+        {
+          "name": "POST 05. Erreserba Sortu (Transakzioa + Bono deskontua)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pistaId\": 1,\n  \"bazkideaId\": 1,\n  \"data\": \"2026-10-28\",\n  \"ordua\": \"18:00:00\",\n  \"erabiliBonoa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak"]
+            },
+            "description": "Erreserba berria txertatzen du transakzio atomiko batean: pista egiaztatu, bonoa deskontatu, hutsunea blokeatu (FOR UPDATE) eta UNIQUE murrizketa bermatu."
+          }
+        },
+        {
+          "name": "POST 06. Erreserba Sortu (Blokeo / Lock Simulazioarekin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pistaId\": 2,\n  \"bazkideaId\": 2,\n  \"data\": \"2026-10-28\",\n  \"ordua\": \"19:00:00\",\n  \"erabiliBonoa\": true,\n  \"itxaron\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak?itxaron=5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak"],
+              "query": [
+                {
+                  "key": "itxaron",
+                  "value": "5000",
+                  "description": "5 segundoko geldialdia simulatzen du transakzio barruan blokeoa probatzeko"
+                }
+              ]
+            },
+            "description": "Transakzioa irekita mantentzen du 5 segundoz aldi bereko beste eskaerek nola itxaroten duten (Lock wait) edo huts egiten duten frogatzeko."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. PUT Eskaerak (Eguneratu & Berreskuratu)",
+      "description": "Datuak eguneratzeko eta Soft-Delete bidez ezabatutakoak berreskuratzeko (RESTORE) eskaerak.",
+      "item": [
+        {
+          "name": "PUT 01. Bonoari Saioak Kargatu (Transakzioa)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"saioak\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5089/api/bonoak/ane@goierri.eus/kargatu",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bonoak", "ane@goierri.eus", "kargatu"]
+            },
+            "description": "Bono bati saio gehiago kargatzen dizkio FOR UPDATE blokeoarekin transakzio seguruan."
+          }
+        },
+        {
+          "name": "PUT 02. Pista Berreskuratu (RESTORE)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/pistak/1/restore",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "pistak", "1", "restore"]
+            },
+            "description": "Soft-Delete egindako pista bat berriro aktibatzen du (ezabatua=FALSE)."
+          }
+        },
+        {
+          "name": "PUT 03. Bazkidea Berreskuratu (RESTORE)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bazkideak/1/restore",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bazkideak", "1", "restore"]
+            },
+            "description": "Soft-Delete bidez ezabatutako bazkidea berrezartzen du."
+          }
+        },
+        {
+          "name": "PUT 04. Erreserba Berreskuratu (RESTORE)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak/1/restore",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak", "1", "restore"]
+            },
+            "description": "Soft-Delete egindako erreserba berrezartzen du, betiere tartean beste batek pista hartu ez badu."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. DELETE Eskaerak (Soft & Hard Delete)",
+      "description": "Ezabaketa logikoak (Soft Delete), berreskuraezinak (Hard Delete) eta garbiketa eragiketak.",
+      "item": [
+        {
+          "name": "DEL 01. Pista Ezabatu (SOFT DELETE - Logikoa)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/pistak/1?hard=false",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "pistak", "1"],
+              "query": [
+                {
+                  "key": "hard",
+                  "value": "false",
+                  "description": "false = Soft Delete"
+                }
+              ]
+            },
+            "description": "Pista logikoki ezabatzen du (ezabatua=TRUE) eta bertako erreserba guztiak automatikoki desgaitzen ditu."
+          }
+        },
+        {
+          "name": "DEL 02. Pista Ezabatu (HARD DELETE - Fisikoa)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/pistak/1?hard=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "pistak", "1"],
+              "query": [
+                {
+                  "key": "hard",
+                  "value": "true",
+                  "description": "true = Hard Delete"
+                }
+              ]
+            },
+            "description": "Pista eta bere erreserbak behin betiko ezabatzen ditu datu-basetik fisikoki."
+          }
+        },
+        {
+          "name": "DEL 03. Bazkidea Ezabatu (SOFT DELETE - Logikoa)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bazkideak/1?hard=false",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bazkideak", "1"],
+              "query": [
+                {
+                  "key": "hard",
+                  "value": "false",
+                  "description": "false = Soft Delete"
+                }
+              ]
+            },
+            "description": "Bazkidea logikoki ezabatzen du (ezabatua=TRUE)."
+          }
+        },
+        {
+          "name": "DEL 04. Bazkidea Ezabatu (HARD DELETE - Fisikoa)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/bazkideak/1?hard=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "bazkideak", "1"],
+              "query": [
+                {
+                  "key": "hard",
+                  "value": "true",
+                  "description": "true = Hard Delete"
+                }
+              ]
+            },
+            "description": "Bazkidea datu-basetik fisikoki ezabatzen du (soilik erreserbarik ez badu)."
+          }
+        },
+        {
+          "name": "DEL 05. Erreserba Ezabatu (SOFT DELETE - Logikoa)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak/1?hard=false",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak", "1"],
+              "query": [
+                {
+                  "key": "hard",
+                  "value": "false",
+                  "description": "false = Soft Delete"
+                }
+              ]
+            },
+            "description": "Erreserba logikoki ezabatzen du: pista eta ordua libre geratzen dira besteentzat."
+          }
+        },
+        {
+          "name": "DEL 06. Erreserba Ezabatu (HARD DELETE - Fisikoa)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak/1?hard=true",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak", "1"],
+              "query": [
+                {
+                  "key": "hard",
+                  "value": "true",
+                  "description": "true = Hard Delete"
+                }
+              ]
+            },
+            "description": "Erreserba behin betiko ezabatzen du MySQL-ko taulatik."
+          }
+        },
+        {
+          "name": "DEL 07. Erreserba Taula Guztiz Garbitu",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5089/api/erreserbak/garbitu",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5089",
+              "path": ["api", "erreserbak", "garbitu"]
+            },
+            "description": "Erreserba taula guztiz husten du probak berriro garbi hasteko."
+          }
+        }
+      ]
     }
   ]
 }

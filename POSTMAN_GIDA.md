@@ -1,6 +1,6 @@
 # Postman Gida - Ordiziako Kiroldegia REST API
 
-Gida honetan **Ordiziako Kiroldegiaren REST APIa** Postman tresnarekin nola probatu azaltzen da urratsez urrats.
+Gida honetan **Kiroldegiaren REST APIa** Postman tresnarekin nola probatu azaltzen da urratsez urrats.
 
 ---
 

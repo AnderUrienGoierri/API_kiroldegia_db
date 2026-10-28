@@ -1,4 +1,5 @@
-using System.Data;
+﻿using System.Data;
+using API_kiroldegia_db.DTO;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -148,31 +149,17 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
     /// - Hutsunea libre dagoen egiaztatu (SELECT COUNT(*) FOR UPDATE)
     /// - Txertatu (UNIQUE 1062 eta Deadlock 1213 salbuespenak kontrolatuz)
     /// </summary>
-    [HttpPost]
+        [HttpPost]
     [HttpPost("transakzioa")]
-    public async Task<IActionResult> SortuErreserba([FromBody] ErreserbaSortuDTO dto, [FromQuery] int itxaron = 0)
+    public async Task<IActionResult> SortuErreserba([FromBody] ErreserbaSortuDto dto, [FromQuery] int itxaron = 0)
     {
         int itxaronMs = itxaron > 0 ? itxaron : dto.Itxaron;
         await using var kon = await SortuKonexioaAsync();
 
-        if (dto.PistaId <= 0 && !string.IsNullOrWhiteSpace(dto.Lekua))
-        {
-            using var cmdP = new MySqlCommand("SELECT id FROM pista WHERE izena = @izena LIMIT 1;", kon);
-            cmdP.Parameters.AddWithValue("@izena", dto.Lekua.Trim());
-            var pId = await cmdP.ExecuteScalarAsync();
-            if (pId != null) dto.PistaId = Convert.ToInt32(pId);
-        }
+        await dto.BeteDatuakAsync(kon);
 
-        if (dto.BazkideaId <= 0 && !string.IsNullOrWhiteSpace(dto.Emaila))
-        {
-            using var cmdB = new MySqlCommand("SELECT id FROM bazkidea WHERE emaila = @email LIMIT 1;", kon);
-            cmdB.Parameters.AddWithValue("@email", dto.Emaila.Trim());
-            var bId = await cmdB.ExecuteScalarAsync();
-            if (bId != null) dto.BazkideaId = Convert.ToInt32(bId);
-        }
-
-        if (dto.PistaId <= 0 || dto.BazkideaId <= 0 || string.IsNullOrWhiteSpace(dto.Data) || string.IsNullOrWhiteSpace(dto.Ordua))
-            return BadRequestError("Datu guztiak beharrezkoak dira (pistaId, bazkideaId, data, ordua).");
+        if ((dto.PistaId ?? 0) <= 0 || (dto.BazkideaId ?? 0) <= 0)
+            return BadRequestError("Datu guztiak beharrezkoak dira (pistaId/lekua eta bazkideaId/emaila zehaztu behar dira).");
 
         await using var tx = await kon.BeginTransactionAsync(IsolationLevel.ReadCommitted);
 
@@ -180,7 +167,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
         {
             // 1. PISTA EGIAZTATU & BLOKEATU (Soft delete eginda badago, ezin da erreserbatu!)
             var cmdPista = new MySqlCommand("SELECT izena, ezabatua FROM pista WHERE id = @pista FOR UPDATE;", kon, tx);
-            cmdPista.Parameters.AddWithValue("@pista", dto.PistaId);
+            cmdPista.Parameters.AddWithValue("@pista", dto.PistaId!.Value);
             string pistaIzena = "";
             using (var readerP = await cmdPista.ExecuteReaderAsync())
             {
@@ -205,7 +192,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
             {
                 // Bazkidearen emaila bilatu
                 var cmdBazk = new MySqlCommand("SELECT emaila FROM bazkidea WHERE id = @bazkidea FOR UPDATE;", kon, tx);
-                cmdBazk.Parameters.AddWithValue("@bazkidea", dto.BazkideaId);
+                cmdBazk.Parameters.AddWithValue("@bazkidea", dto.BazkideaId!.Value);
                 var emailObj = await cmdBazk.ExecuteScalarAsync();
                 if (emailObj == null || emailObj == DBNull.Value || string.IsNullOrWhiteSpace(emailObj.ToString()))
                 {
@@ -245,9 +232,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 WHERE pista_id = @pista AND data = @data AND ordua = @ordua AND ezabatua = FALSE 
                 FOR UPDATE;", kon, tx);
 
-            cmdCheck.Parameters.AddWithValue("@pista", dto.PistaId);
-            cmdCheck.Parameters.AddWithValue("@data", dto.Data);
-            cmdCheck.Parameters.AddWithValue("@ordua", dto.Ordua);
+            ErreserbaSortuDto.GehituParametroak(cmdCheck, dto);
 
             long kopurua = Convert.ToInt64(await cmdCheck.ExecuteScalarAsync());
             if (kopurua > 0)
@@ -261,10 +246,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 INSERT INTO erreserba (pista_id, bazkidea_id, data, ordua, ezabatua) 
                 VALUES (@pista, @bazkidea, @data, @ordua, FALSE);", kon, tx);
 
-            cmdInsert.Parameters.AddWithValue("@pista", dto.PistaId);
-            cmdInsert.Parameters.AddWithValue("@bazkidea", dto.BazkideaId);
-            cmdInsert.Parameters.AddWithValue("@data", dto.Data);
-            cmdInsert.Parameters.AddWithValue("@ordua", dto.Ordua);
+            ErreserbaSortuDto.GehituParametroak(cmdInsert, dto);
 
             await cmdInsert.ExecuteNonQueryAsync();
             long idBerria = cmdInsert.LastInsertedId;
@@ -285,6 +267,8 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 ? $" ({itxaronMs / 1000}s-ko blokeoa simulatu da)." 
                 : "";
 
+            var sortutakoErreserba = ErreserbaSortuDto.SortuErreserba((int)idBerria, dto);
+
             return Created(new
             {
                 id = idBerria,
@@ -293,7 +277,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 bonoSaioak = geratzenDirenSaioak,
                 blokeoaSimulatua = itxaronMs > 0,
                 itxaronMs = itxaronMs,
-                datuak = dto
+                datuak = sortutakoErreserba
             }, 201, "Erreserba arrakastaz sortu da!");
         }
         catch (MySqlException ex) when (ex.Number == 1062) // UNIQUE constraint apurtu bada

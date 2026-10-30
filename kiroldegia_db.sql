@@ -83,7 +83,7 @@ INSERT INTO bonoak (emaila, saioak) VALUES
   ('nerea@goierri.eus', 1);
 
 -- =============================================================================
--- IKASKIDEEN KANPOKO KONEXIOAK BAIMENTZEKO ERABILTZAILEA
+-- KANPOKO KONEXIOAK BAIMENTZEKO ERABILTZAILEA
 -- =============================================================================
 CREATE USER IF NOT EXISTS 'ikaslea'@'%' IDENTIFIED BY 'ikaslea';
 GRANT ALL PRIVILEGES ON kiroldegia.* TO 'ikaslea'@'%';

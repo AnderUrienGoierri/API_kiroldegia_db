@@ -46,7 +46,7 @@ namespace API_kiroldegia_db.Controllers
         protected IActionResult SuccessList<T>(List<T> datalist, int code = 200, string message = "OK")
             => StatusCode(code, ApiResponse<T>.Ok(datalist, code, message));
 
-        protected IActionResult Created<T>(T data, int code = 201, string message = "Zuzen sortu da")
+        protected IActionResult Created<T>(T data, int code = 201, string message = "Ondo sortu da")
             => StatusCode(code, ApiResponse<T>.Ok(data, code, message));
 
         // =====================================================================

@@ -13,13 +13,39 @@ Proiektua arduren banaketa garbia jarraituz antolatuta dago. Karpetak eta klasea
 
 ```text
 API_kiroldegia_db/
-├── Controllers/                  # API kontroladoreak eta negozio-logika
-│   ├── BaseApiKontroladorea.cs   # Oinarrizko kontroladorea (erantzun bateratuak: Success, Created, Error...)
-│   ├── PistakKontroladorea.cs    # Pistak kudeatzeko endpointak (GET, POST, DELETE, PUT restore)
-│   ├── BazkideakKontroladorea.cs # Bazkideak kudeatzeko endpointak
-│   ├── BonoakKontroladorea.cs    # Bonoen saldoak, kargak eta kontsumoak kudeatzeko
-│   └── ErreserbakKontroladorea.cs# Erreserben transakzioak, blokeoak (FOR UPDATE) eta kontrolak
-├── DTO/                          # Data Transfer Objects (POCO hutsak, datuak garraiatzeko bakarrik)
+├── Controllers/                  # API kontroladoreak karpetatan eta ekintzaka banatuta
+│   ├── BaseApiKontroladorea.cs   # Oinarrizko kontroladorea (erantzun bateratuak)
+│   ├── Pistak/                   # Pistak kudeatzeko ekintzak (partial class)
+│   │   ├── PistakKontroladorea.cs
+│   │   ├── LortuPistak.cs
+│   │   ├── LortuPista.cs
+│   │   ├── SortuPista.cs
+│   │   ├── EzabatuPista.cs
+│   │   └── BerreskuratuPista.cs
+│   ├── Bazkideak/                # Bazkideak kudeatzeko ekintzak (partial class)
+│   │   ├── BazkideakKontroladorea.cs
+│   │   ├── LortuBazkideak.cs
+│   │   ├── LortuBazkidea.cs
+│   │   ├── SortuBazkidea.cs
+│   │   ├── EzabatuBazkidea.cs
+│   │   └── BerreskuratuBazkidea.cs
+│   ├── Bonoak/                   # Bonoak kudeatzeko ekintzak (partial class)
+│   │   ├── BonoakKontroladorea.cs
+│   │   ├── LortuBonoak.cs
+│   │   ├── LortuBonoa.cs
+│   │   ├── SortuBonoa.cs
+│   │   ├── KargatuSaioak.cs
+│   │   └── ErabiliSaioa.cs
+│   └── Erreserbak/               # Erreserben transakzioak eta ekintzak (partial class)
+│       ├── ErreserbakKontroladorea.cs
+│       ├── LortuErreserbak.cs
+│       ├── LortuErreserba.cs
+│       ├── LortuErreserbadunBazkideak.cs
+│       ├── SortuErreserba.cs
+│       ├── EzabatuErreserba.cs
+│       ├── BerreskuratuErreserba.cs
+│       └── GarbituErreserbak.cs
+├── DTO/                          # Data Transfer Objects (POCO hutsak, 1 fitxategi = 1 klase)
 │   ├── PistaDto.cs               # Pista kontsultatzeko DTOa (GET)
 │   ├── PistaSortuDto.cs          # Pista berria sortzeko DTOa (POST)
 │   ├── BazkideaDto.cs            # Bazkidea kontsultatzeko DTOa (GET)
@@ -50,7 +76,17 @@ API_kiroldegia_db/
    * DTO klase bakoitzak bere fitxategi propioa du (`DTO/` karpetan), izen bera daramana.
    * Kontsultetarako DTOak (`*Dto.cs`) eta eskaeretarako DTOak (`*SortuDto.cs`, `*KargatuDto.cs`) bereizita daude.
 3. **Logika kapsulatua kontroladoreetan:**
-   * Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/ErreserbakKontroladorea.cs)).
+   * Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituErreserbaParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/Erreserbak/ErreserbakKontroladorea.cs)).
+
+---
+
+## Kontroladoreen Egitura Modularra (Partial Classes)
+
+Kontroladore bakoitza bere baliabidearen araberako karpeta batean antolatu da (`Controllers/Pistak/`, `Controllers/Bazkideak/`, `Controllers/Bonoak/` eta `Controllers/Erreserbak/`).
+C#-ko `partial class` mekanismoa erabiliz:
+- Karpetako kontroladore nagusiak (`*Kontroladorea.cs`) ibilbidearen (`[Route]`) konfigurazioa, mendekotasun-injekzioa (`ILogger`, `IConfiguration`) eta klasearen oinarrizko definizioa dauzka.
+- Endpoint edo ekintza bakoitzak bere fitxategi propioa du (`Lortu*.cs`, `Sortu*.cs`, `Ezabatu*.cs`...), ardura bakar baten inguruan zentratuta eta kodearen irakurgarritasuna nabarmen hobetuz.
+- Konpilatzaileak klase bakar batean elkartzen ditu atal guztiak, ASP.NET Core-ren ibilbide-mekanismoari erabateko bateragarritasuna emanez.
 
 ---
 

@@ -72,13 +72,13 @@ API_kiroldegia_db/
 ## DTOen Diseinu-Printzipioak (Clean Design)
 
 1. **Ardura Bakarra (Single Responsibility Principle - SRP):**
-   * DTOek **datuak soilik garraiatzen dituzte** (JSON eta C# propietateen artean).
-   * DTOek **ez dute datu-baseko sarbiderik** (`MySqlConnection` edo `SELECT` kontsultarik ez dago DTOetan).
+   - DTOek **datuak soilik garraiatzen dituzte** (JSON eta C# propietateen artean).
+   - DTOek **ez dute datu-baseko sarbiderik** (`MySqlConnection` edo `SELECT` kontsultarik ez dago DTOetan).
 2. **Homogeneotasuna eta Estandarrak:**
-   * DTO klase bakoitzak bere fitxategi propioa du (`DTO/` karpetan), izen bera daramana.
-   * Kontsultetarako DTOak (`*Dto.cs`) eta eskaeretarako DTOak (`*SortuDto.cs`, `*KargatuDto.cs`) bereizita daude.
+   - DTO klase bakoitzak bere fitxategi propioa du (`DTO/` karpetan), izen bera daramana.
+   - Kontsultetarako DTOak (`*Dto.cs`) eta eskaeretarako DTOak (`*SortuDto.cs`, `*KargatuDto.cs`) bereizita daude.
 3. **Logika kapsulatua kontroladoreetan:**
-   * Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituErreserbaParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/Erreserbak/ErreserbakKontroladorea.cs)).
+   - Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituErreserbaParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/Erreserbak/ErreserbakKontroladorea.cs)).
 
 ---
 
@@ -86,6 +86,7 @@ API_kiroldegia_db/
 
 Kontroladore bakoitza bere baliabidearen araberako karpeta batean antolatu da (`Controllers/Pistak/`, `Controllers/Bazkideak/`, `Controllers/Bonoak/` eta `Controllers/Erreserbak/`).
 C#-ko `partial class` mekanismoa erabiliz:
+
 - Karpetako kontroladore nagusiak (`*Kontroladorea.cs`) ibilbidearen (`[Route]`) konfigurazioa, mendekotasun-injekzioa (`ILogger`, `IConfiguration`) eta klasearen oinarrizko definizioa dauzka.
 - Endpoint edo ekintza bakoitzak bere fitxategi propioa du (`Lortu*.cs`, `Sortu*.cs`, `Ezabatu*.cs`...), ardura bakar baten inguruan zentratuta eta kodearen irakurgarritasuna nabarmen hobetuz.
 - Konpilatzaileak klase bakar batean elkartzen ditu atal guztiak, ASP.NET Core-ren ibilbide-mekanismoari erabateko bateragarritasuna emanez.
@@ -109,50 +110,54 @@ C#-ko `partial class` mekanismoa erabiliz:
 Metodoen arabera ordenatuta:
 
 ### 1. GET (9 endpoint)
-| Metodoa | Bidea | Deskribapena |
-|---|---|---|
-| **GET** | `/` | APIaren egoera eta 29 endpoint-en laburpena |
-| **GET** | `/api/pistak?barneEzabatuak=true` | Pista guztiak zerrendatu |
-| **GET** | `/api/pistak/{id}` | Pista zehatza ID bidez lortu |
-| **GET** | `/api/erreserbak?barneEzabatuak=true` | Erreserba guztiak zerrendatu |
-| **GET** | `/api/erreserbak/{id}` | Erreserba zehatza ID bidez lortu |
-| **GET** | `/api/erreserbak/bazkideak` | Soilik erreserba aktiboak dituzten bazkideak |
-| **GET** | `/api/bazkideak?barneEzabatuak=true` | Bazkide guztiak bono-saldoarekin |
-| **GET** | `/api/bazkideak/{id}` | Bazkide zehatza ID bidez lortu |
-| **GET** | `/api/bonoak?barneEzabatuak=true` | Bono guztiak eta saio erabilgarriak |
-| **GET** | `/api/bonoak/{emaila}` | Bazkide baten bonoa lortu emailaren arabera |
+
+| Metodoa | Bidea                                 | Deskribapena                                 |
+| ------- | ------------------------------------- | -------------------------------------------- |
+| **GET** | `/`                                   | APIaren egoera eta 29 endpoint-en laburpena  |
+| **GET** | `/api/pistak?barneEzabatuak=true`     | Pista guztiak zerrendatu                     |
+| **GET** | `/api/pistak/{id}`                    | Pista zehatza ID bidez lortu                 |
+| **GET** | `/api/erreserbak?barneEzabatuak=true` | Erreserba guztiak zerrendatu                 |
+| **GET** | `/api/erreserbak/{id}`                | Erreserba zehatza ID bidez lortu             |
+| **GET** | `/api/erreserbak/bazkideak`           | Soilik erreserba aktiboak dituzten bazkideak |
+| **GET** | `/api/bazkideak?barneEzabatuak=true`  | Bazkide guztiak bono-saldoarekin             |
+| **GET** | `/api/bazkideak/{id}`                 | Bazkide zehatza ID bidez lortu               |
+| **GET** | `/api/bonoak?barneEzabatuak=true`     | Bono guztiak eta saio erabilgarriak          |
+| **GET** | `/api/bonoak/{emaila}`                | Bazkide baten bonoa lortu emailaren arabera  |
 
 ### 2. POST (6 endpoint)
-| Metodoa | Bidea | Deskribapena |
-|---|---|---|
-| **POST** | `/api/pistak` | Pista berria sortu |
-| **POST** | `/api/erreserbak` | Erreserba berria egin (Transakzioa + FOR UPDATE) |
-| **POST** | `/api/erreserbak/transakzioa` | Erreserba transakzioarekin (`?itxaron=ms` simulazioarekin) |
-| **POST** | `/api/bazkideak` | Bazkide berria sortu (hasierako bonoarekin) |
-| **POST** | `/api/bonoak` | Bono berria erosi / sortu |
-| **POST** | `/api/bonoak/{emaila}/erabili` | Bonoaren saio 1 kontsumitu transakzioan |
+
+| Metodoa  | Bidea                          | Deskribapena                                               |
+| -------- | ------------------------------ | ---------------------------------------------------------- |
+| **POST** | `/api/pistak`                  | Pista berria sortu                                         |
+| **POST** | `/api/erreserbak`              | Erreserba berria egin (Transakzioa + FOR UPDATE)           |
+| **POST** | `/api/erreserbak/transakzioa`  | Erreserba transakzioarekin (`?itxaron=ms` simulazioarekin) |
+| **POST** | `/api/bazkideak`               | Bazkide berria sortu (hasierako bonoarekin)                |
+| **POST** | `/api/bonoak`                  | Bono berria erosi / sortu                                  |
+| **POST** | `/api/bonoak/{emaila}/erabili` | Bonoaren saio 1 kontsumitu transakzioan                    |
 
 ### 3. PUT (5 endpoint)
-| Metodoa | Bidea | Deskribapena |
-|---|---|---|
-| **PUT** | `/api/pistak/{id}/restore` | Pista berreskuratu (Restore) |
-| **PUT** | `/api/erreserbak/{id}/restore` | Erreserba berreskuratu (Restore) |
-| **PUT** | `/api/bazkideak/{id}/restore` | Bazkidea berreskuratu (Restore) |
-| **PUT** | `/api/bonoak/{emaila}/kargatu` | Bonoari saioak kargatu |
+
+| Metodoa | Bidea                          | Deskribapena                              |
+| ------- | ------------------------------ | ----------------------------------------- |
+| **PUT** | `/api/pistak/{id}/restore`     | Pista berreskuratu (Restore)              |
+| **PUT** | `/api/erreserbak/{id}/restore` | Erreserba berreskuratu (Restore)          |
+| **PUT** | `/api/bazkideak/{id}/restore`  | Bazkidea berreskuratu (Restore)           |
+| **PUT** | `/api/bonoak/{emaila}/kargatu` | Bonoari saioak kargatu                    |
 | **PUT** | `/api/bonoak/{emaila}/restore` | Desgaitutako bonoa berreskuratu (Restore) |
 
 ### 4. DELETE (9 endpoint)
-| Metodoa | Bidea | Deskribapena |
-|---|---|---|
-| **DELETE** | `/api/pistak/{id}?hard=false` | Soft Delete (pista desgaitu eta erreserbak askatu) |
-| **DELETE** | `/api/pistak/{id}?hard=true` | Hard Delete (pista eta bere erreserbak betiko ezabatu) |
-| **DELETE** | `/api/erreserbak/{id}?hard=false` | Soft Delete (erreserba desgaitu eta pista askatu) |
-| **DELETE** | `/api/erreserbak/{id}?hard=true` | Hard Delete (erreserba behin betiko ezabatu) |
-| **DELETE** | `/api/erreserbak/garbitu` | Erreserba taula guztiz garbitu (probetarako) |
-| **DELETE** | `/api/bazkideak/{id}?hard=false` | Soft Delete (bazkidea logikoki ezabatu) |
-| **DELETE** | `/api/bazkideak/{id}?hard=true` | Hard Delete (bazkidea behin betiko ezabatu) |
-| **DELETE** | `/api/bonoak/{emaila}?hard=false` | Soft Delete (bonoa logikoki ezabatu) |
-| **DELETE** | `/api/bonoak/{emaila}?hard=true` | Hard Delete (bonoa behin betiko ezabatu) |
+
+| Metodoa    | Bidea                             | Deskribapena                                           |
+| ---------- | --------------------------------- | ------------------------------------------------------ |
+| **DELETE** | `/api/pistak/{id}?hard=false`     | Soft Delete (pista desgaitu eta erreserbak askatu)     |
+| **DELETE** | `/api/pistak/{id}?hard=true`      | Hard Delete (pista eta bere erreserbak betiko ezabatu) |
+| **DELETE** | `/api/erreserbak/{id}?hard=false` | Soft Delete (erreserba desgaitu eta pista askatu)      |
+| **DELETE** | `/api/erreserbak/{id}?hard=true`  | Hard Delete (erreserba behin betiko ezabatu)           |
+| **DELETE** | `/api/erreserbak/garbitu`         | Erreserba taula guztiz garbitu (probetarako)           |
+| **DELETE** | `/api/bazkideak/{id}?hard=false`  | Soft Delete (bazkidea logikoki ezabatu)                |
+| **DELETE** | `/api/bazkideak/{id}?hard=true`   | Hard Delete (bazkidea behin betiko ezabatu)            |
+| **DELETE** | `/api/bonoak/{emaila}?hard=false` | Soft Delete (bonoa logikoki ezabatu)                   |
+| **DELETE** | `/api/bonoak/{emaila}?hard=true`  | Hard Delete (bonoa behin betiko ezabatu)               |
 
 ---
 
@@ -160,17 +165,20 @@ Metodoen arabera ordenatuta:
 
 1. **Datu-basea kargatu:**
    MySQL-n `kiroldegia_db.sql` gidoia inportatu:
+
    ```bash
    mysql -u root -p < kiroldegia_db.sql
    ```
 
 2. **APIa eraiki eta abiarazi:**
+
    ```bash
    dotnet build
    dotnet run --project API_kiroldegia_db/API_kiroldegia_db.csproj
    ```
+
    Nabigatzailean `http://localhost:5089/` helbidera joan APIaren egoera eta 26 endpoint-ak ikusteko.
 
 3. **Postman probak:**
-   Inportatu `Kiroldegia_API.postman_collection.json` fitxategia Postman aplikazioan. Eskaera guztiak metodoka antolatuta daude (`GET`, `POST`, `PUT`, `DELETE`).  
+   Inportatu `Kiroldegia_API.postman_collection.json` fitxategia Postman aplikazioan. Eskaera guztiak metodoka antolatuta daude (`GET`, `POST`, `PUT`, `DELETE`).
    Gida osoa eta zehatza ikusteko: **[POSTMAN_GIDA.md](./POSTMAN_GIDA.md)**.

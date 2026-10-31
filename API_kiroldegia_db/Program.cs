@@ -46,13 +46,13 @@ app.MapGet("/", () => Results.Ok(new
 {
     mezua = "Ordiziako Kiroldegia REST API martxan dago!",
     webAplikazioa = "http://localhost/kiroldegia/",
-    endpointsGuztira = 26,
+    endpointsGuztira = 29,
     laburpena = new
     {
         GET = 9,
         POST = 6,
-        PUT = 4,
-        DELETE = 7
+        PUT = 5,
+        DELETE = 9
     },
     endpoints = new[]
     {
@@ -66,7 +66,7 @@ app.MapGet("/", () => Results.Ok(new
         "GET    /api/erreserbak/bazkideak (?barneEzabatuak=true/false) - Soilik erreserbadun bazkideak lortu",
         "GET    /api/bazkideak (?barneEzabatuak=true/false) - Bazkide guztiak lortu (bono saldoarekin)",
         "GET    /api/bazkideak/{id} - Bazkide bakarra ID bidez lortu",
-        "GET    /api/bonoak - Bono guztiak eta saio erabilgarriak",
+        "GET    /api/bonoak (?barneEzabatuak=true/false) - Bono guztiak eta saio erabilgarriak",
         "GET    /api/bonoak/{emaila} - Email zehatz baten bonoa lortu",
 
         // ==========================================
@@ -80,15 +80,16 @@ app.MapGet("/", () => Results.Ok(new
         "POST   /api/bonoak/{emaila}/erabili - Bonoaren saio 1 kontsumitu transakzioan",
 
         // ==========================================
-        // 3. PUT (4 endpoint)
+        // 3. PUT (5 endpoint)
         // ==========================================
         "PUT    /api/pistak/{id}/restore - Desgaitutako pista berreskuratu (Restore)",
         "PUT    /api/erreserbak/{id}/restore - Soft-Delete egindako erreserba berreskuratu (Restore)",
         "PUT    /api/bazkideak/{id}/restore - Desgaitutako bazkidea berreskuratu (Restore)",
         "PUT    /api/bonoak/{emaila}/kargatu - Bonoari saioak kargatu transakzioan",
+        "PUT    /api/bonoak/{emaila}/restore - Desgaitutako bonoa berreskuratu (Restore)",
 
         // ==========================================
-        // 4. DELETE (7 endpoint)
+        // 4. DELETE (9 endpoint)
         // ==========================================
         "DELETE /api/pistak/{id}?hard=false - Pista Soft Delete (erlazionatutako erreserbak desgaitu)",
         "DELETE /api/pistak/{id}?hard=true - Pista Hard Delete (pista eta erreserbak behin betiko ezabatu)",
@@ -96,7 +97,9 @@ app.MapGet("/", () => Results.Ok(new
         "DELETE /api/erreserbak/{id}?hard=true - Erreserba Hard Delete (behin betiko ezabatu)",
         "DELETE /api/erreserbak/garbitu - Erreserba taula guztiz hustu (probetarako)",
         "DELETE /api/bazkideak/{id}?hard=false - Bazkidea Soft Delete",
-        "DELETE /api/bazkideak/{id}?hard=true - Bazkidea Hard Delete"
+        "DELETE /api/bazkideak/{id}?hard=true - Bazkidea Hard Delete",
+        "DELETE /api/bonoak/{emaila}?hard=false - Bonoa Soft Delete",
+        "DELETE /api/bonoak/{emaila}?hard=true - Bonoa Hard Delete"
     }
 }));
 

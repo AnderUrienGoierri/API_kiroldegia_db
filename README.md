@@ -102,14 +102,14 @@ C#-ko `partial class` mekanismoa erabiliz:
 
 ---
 
-## Bideak (26 Endpoints)
+## Bideak (29 Endpoints)
 
 Metodoen arabera ordenatuta:
 
 ### 1. GET (9 endpoint)
 | Metodoa | Bidea | Deskribapena |
 |---|---|---|
-| **GET** | `/` | APIaren egoera eta 26 endpoint-en laburpena |
+| **GET** | `/` | APIaren egoera eta 29 endpoint-en laburpena |
 | **GET** | `/api/pistak?barneEzabatuak=true` | Pista guztiak zerrendatu |
 | **GET** | `/api/pistak/{id}` | Pista zehatza ID bidez lortu |
 | **GET** | `/api/erreserbak?barneEzabatuak=true` | Erreserba guztiak zerrendatu |
@@ -117,7 +117,7 @@ Metodoen arabera ordenatuta:
 | **GET** | `/api/erreserbak/bazkideak` | Soilik erreserba aktiboak dituzten bazkideak |
 | **GET** | `/api/bazkideak?barneEzabatuak=true` | Bazkide guztiak bono-saldoarekin |
 | **GET** | `/api/bazkideak/{id}` | Bazkide zehatza ID bidez lortu |
-| **GET** | `/api/bonoak` | Bono guztiak eta saio erabilgarriak |
+| **GET** | `/api/bonoak?barneEzabatuak=true` | Bono guztiak eta saio erabilgarriak |
 | **GET** | `/api/bonoak/{emaila}` | Bazkide baten bonoa lortu emailaren arabera |
 
 ### 2. POST (6 endpoint)
@@ -130,15 +130,16 @@ Metodoen arabera ordenatuta:
 | **POST** | `/api/bonoak` | Bono berria erosi / sortu |
 | **POST** | `/api/bonoak/{emaila}/erabili` | Bonoaren saio 1 kontsumitu transakzioan |
 
-### 3. PUT (4 endpoint)
+### 3. PUT (5 endpoint)
 | Metodoa | Bidea | Deskribapena |
 |---|---|---|
 | **PUT** | `/api/pistak/{id}/restore` | Pista berreskuratu (Restore) |
 | **PUT** | `/api/erreserbak/{id}/restore` | Erreserba berreskuratu (Restore) |
 | **PUT** | `/api/bazkideak/{id}/restore` | Bazkidea berreskuratu (Restore) |
 | **PUT** | `/api/bonoak/{emaila}/kargatu` | Bonoari saioak kargatu |
+| **PUT** | `/api/bonoak/{emaila}/restore` | Desgaitutako bonoa berreskuratu (Restore) |
 
-### 4. DELETE (7 endpoint)
+### 4. DELETE (9 endpoint)
 | Metodoa | Bidea | Deskribapena |
 |---|---|---|
 | **DELETE** | `/api/pistak/{id}?hard=false` | Soft Delete (pista desgaitu eta erreserbak askatu) |
@@ -148,6 +149,8 @@ Metodoen arabera ordenatuta:
 | **DELETE** | `/api/erreserbak/garbitu` | Erreserba taula guztiz garbitu (probetarako) |
 | **DELETE** | `/api/bazkideak/{id}?hard=false` | Soft Delete (bazkidea logikoki ezabatu) |
 | **DELETE** | `/api/bazkideak/{id}?hard=true` | Hard Delete (bazkidea behin betiko ezabatu) |
+| **DELETE** | `/api/bonoak/{emaila}?hard=false` | Soft Delete (bonoa logikoki ezabatu) |
+| **DELETE** | `/api/bonoak/{emaila}?hard=true` | Hard Delete (bonoa behin betiko ezabatu) |
 
 ---
 

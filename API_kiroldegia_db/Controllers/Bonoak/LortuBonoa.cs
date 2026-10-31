@@ -13,7 +13,7 @@ public partial class BonoakKontroladorea
     public async Task<IActionResult> LortuBonoa(string emaila)
     {
         await using var kon = await SortuKonexioaAsync();
-        using var cmd = new MySqlCommand("SELECT emaila, saioak FROM bonoak WHERE emaila = @email;", kon);
+        using var cmd = new MySqlCommand("SELECT emaila, saioak, ezabatua, ezabaketa_data FROM bonoak WHERE emaila = @email;", kon);
         cmd.Parameters.AddWithValue("@email", emaila);
 
         using var reader = await cmd.ExecuteReaderAsync();
@@ -23,9 +23,12 @@ public partial class BonoakKontroladorea
         var bono = new BonoDTO
         {
             Emaila = reader.GetString("emaila"),
-            Saioak = reader.GetInt32("saioak")
+            Saioak = reader.GetInt32("saioak"),
+            Ezabatua = reader.GetBoolean("ezabatua"),
+            EzabaketaData = reader.IsDBNull(reader.GetOrdinal("ezabaketa_data"))
+                ? null
+                : reader.GetDateTime("ezabaketa_data")
         };
         return Success(bono, 200, "Bonoa ondo lortu da.");
     }
 }
-

@@ -62,7 +62,8 @@ API_kiroldegia_db/
 │   ├── Bonoa.cs                  # 'bonoak' taularen eredua
 │   └── Erreserba.cs              # 'erreserba' taularen eredua
 ├── Responses/                    # API erantzunen bilgarri estandarra
-│   └── ApiResponse.cs            # JSON erantzun uniformea (success, code, message, data, timestamp)
+│   ├── ApiResponse.cs            # Arrakasta erantzunen formatu uniformea (success, code, message, data, timestamp)
+│   └── ApiError.cs               # Akats erantzunen formatu uniformea (status, type, code, message, detail)
 ├── Program.cs                    # Aplikazioaren konfigurazioa, DI, CORS eta '/' erroko ibilbidea
 └── appsettings.json              # Datu-baseko konexio-katea (ConnectionStrings:DefaultConnection)
 ```

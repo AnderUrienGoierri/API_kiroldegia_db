@@ -97,7 +97,7 @@ C#-ko `partial class` mekanismoa erabiliz:
 ## Ezaugarri Tekniko Nagusiak
 
 - **Transakzio sendoak eta atomikoak:** `SELECT ... FOR UPDATE` blokeoak erreserbak egitean hutsuneak libre daudela ziurtatzeko eta bonoen saldoak aldi berean deskontatzeko (race conditions saihestuz).
-- **Salbuespenen kontrol zehatza:** MySQL 1062 (UNIQUE constraint) eta 1213 (Deadlock) erroreak kudeatzen dira rollback automatikoekin.
+- **Salbuespenen kontrola:** MySQL 1062 (UNIQUE constraint) eta 1213 (Deadlock) erroreak kudeatzen dira rollback automatikoekin.
 - **Ezabaketa bikoitza (Soft eta Hard Delete):**
   - **Soft Delete (`?hard=false`):** `ezabatua = TRUE`, pista libre uzten du baina datu historikoak gordeta mantentzen ditu. Pistak desgaitzean erlazionatutako erreserbak automatikoki desgaitzen dira.
   - **Hard Delete (`?hard=true`):** Datu-basetik fisikoki ezabatzen du (`DELETE FROM`).

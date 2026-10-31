@@ -22,7 +22,7 @@ CREATE TABLE pista (
   PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
--- 2. BAZKIDEA TAULA (Emaila bonoekin lotzeko eta Soft Delete zutabeak)
+-- 2. BAZKIDEA TAULA (Emaila bonoekin lotzeko eta Soft Delete kudeaketarako zutabeekin)
 CREATE TABLE bazkidea (
   id             INT          NOT NULL AUTO_INCREMENT,
   izena          VARCHAR(50)  NOT NULL,
@@ -34,10 +34,12 @@ CREATE TABLE bazkidea (
   UNIQUE KEY uq_bazkidea_emaila (emaila)
 ) ENGINE = InnoDB;
 
--- 3. BONOAK TAULA
+-- 3. BONOAK TAULA (Soft Delete kudeaketarako zutabeekin)
 CREATE TABLE `bonoak` (
-  `emaila` varchar(100) NOT NULL,
-  `saioak` int NOT NULL,
+  `emaila`         VARCHAR(100) NOT NULL,
+  `saioak`         INT          NOT NULL,
+  `ezabatua`       BOOLEAN      NOT NULL DEFAULT FALSE,
+  `ezabaketa_data` DATETIME     NULL     DEFAULT NULL,
   PRIMARY KEY (`emaila`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
@@ -52,8 +54,8 @@ CREATE TABLE erreserba (
   ezabatua       BOOLEAN      NOT NULL DEFAULT FALSE,
   ezabaketa_data DATETIME     NULL     DEFAULT NULL,
   PRIMARY KEY (id),
-  CONSTRAINT fk_erreserba_pista    FOREIGN KEY (pista_id)    REFERENCES pista (id),
-  CONSTRAINT fk_erreserba_bazkidea FOREIGN KEY (bazkidea_id) REFERENCES bazkidea (id),
+  CONSTRAINT fk_erreserba_pista    FOREIGN KEY (pista_id)    REFERENCES pista (id)    ON DELETE RESTRICT,
+  CONSTRAINT fk_erreserba_bazkidea FOREIGN KEY (bazkidea_id) REFERENCES bazkidea (id) ON DELETE RESTRICT,
   CONSTRAINT uq_erreserba_pista_data_ordua UNIQUE (pista_id, data, ordua),
   INDEX ix_erreserba_bazkidea_data (bazkidea_id, data)
 ) ENGINE = InnoDB;

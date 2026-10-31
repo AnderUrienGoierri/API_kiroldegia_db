@@ -1,70 +1,135 @@
 # Ordiziako Kiroldegia - REST API (`API_kiroldegia_db`)
 
-ASP.NET Core Web API proiektua, MySQL datu-basearekin (`kiroldegia`), transakzio atomikoekin (`SELECT ... FOR UPDATE`), Soft/Hard Delete eta bonoen kudeaketarekin.
+ASP.NET Core Web API profesionala, MySQL datu-basearekin (`kiroldegia`), transakzio atomikoekin (`SELECT ... FOR UPDATE`), Soft/Hard Delete mekanismoekin, bonoen kudeaketarekin eta arkitektura garbi homogeneoarekin (Clean Architecture eta Single Responsibility Principle).
 
 - **Biltegia:** [https://github.com/AnderUrienGoierri/API_kiroldegia_db](https://github.com/AnderUrienGoierri/API_kiroldegia_db)
+- **Portua:** `http://localhost:5089`
 
 ---
 
-## Ezaugarriak
-- **Transakzio sendoak:** `SELECT ... FOR UPDATE` blokeoak erreserbak egitean hutsuneak libre daudela ziurtatzeko eta bonoen saldoak deskontatzeko.
-- **Salbuespenen kontrola:** MySQL 1062 (UNIQUE constraint) eta 1213 (Deadlock) erroreak kudeatzen dira.
-- **Ezabaketa bikoitza:**
-  - **Soft Delete:** `ezabatua = TRUE`, pista libre uzten du baina datuak gordeta mantentzen ditu.
-  - **Hard Delete:** Datu-basetik fisikoki ezabatzen du (`DELETE FROM`).
-  - **Restore:** Soft Delete egindako erreserbak, pistak eta bazkideak berreskuratzeko aukera.
-- **Bonoen sistema:** Bazkide bakoitzak saioak dituen bonoa erabil dezake erreserbak egiteko eta kargatzeko.
+## Proiektuaren Arkitektura eta Egitura
+
+Proiektua arduren banaketa garbia jarraituz antolatuta dago. Karpetak eta klaseak **fitxategi bakoitzeko klase bat** (C# konbentzio estandarra) jarraituz egituratu dira:
+
+```text
+API_kiroldegia_db/
+├── Controllers/                  # API kontroladoreak eta negozio-logika
+│   ├── BaseApiKontroladorea.cs   # Oinarrizko kontroladorea (erantzun bateratuak: Success, Created, Error...)
+│   ├── PistakKontroladorea.cs    # Pistak kudeatzeko endpointak (GET, POST, DELETE, PUT restore)
+│   ├── BazkideakKontroladorea.cs # Bazkideak kudeatzeko endpointak
+│   ├── BonoakKontroladorea.cs    # Bonoen saldoak, kargak eta kontsumoak kudeatzeko
+│   └── ErreserbakKontroladorea.cs# Erreserben transakzioak, blokeoak (FOR UPDATE) eta kontrolak
+├── DTO/                          # Data Transfer Objects (POCO hutsak, datuak garraiatzeko bakarrik)
+│   ├── PistaDto.cs               # Pista kontsultatzeko DTOa (GET)
+│   ├── PistaSortuDto.cs          # Pista berria sortzeko DTOa (POST)
+│   ├── BazkideaDto.cs            # Bazkidea kontsultatzeko DTOa (GET)
+│   ├── BazkideaSortuDto.cs       # Bazkide berria sortzeko DTOa (POST)
+│   ├── BonoDto.cs                # Bonoa kontsultatzeko DTOa (GET)
+│   ├── BonoKargatuDto.cs         # Bonoari saioak kargatzeko DTOa (PUT)
+│   ├── ErreserbaDto.cs           # Erreserba kontsultatzeko DTOa (GET)
+│   └── ErreserbaSortuDto.cs      # Erreserba berria eskatzeko DTOa (POST)
+├── Models/                       # Domeinu-ereduak (MySQL taulekin 1:1 mapatuta)
+│   ├── Pista.cs                  # 'pista' taularen eredua
+│   ├── Bazkidea.cs               # 'bazkidea' taularen eredua
+│   ├── Bonoa.cs                  # 'bonoak' taularen eredua
+│   └── Erreserba.cs              # 'erreserba' taularen eredua
+├── Responses/                    # API erantzunen bilgarri estandarra
+│   └── ApiResponse.cs            # JSON erantzun uniformea (success, code, message, data, timestamp)
+├── Program.cs                    # Aplikazioaren konfigurazioa, DI, CORS eta '/' erroko ibilbidea
+└── appsettings.json              # Datu-baseko konexio-katea (ConnectionStrings:DefaultConnection)
+```
 
 ---
 
-## Bideak (Endpoints)
+## DTOen Diseinu-Printzipioak (Clean Design)
 
+1. **Ardura Bakarra (Single Responsibility Principle - SRP):**
+   * DTOek **datuak soilik garraiatzen dituzte** (JSON eta C# propietateen artean).
+   * DTOek **ez dute datu-baseko sarbiderik** (`MySqlConnection` edo `SELECT` kontsultarik ez dago DTOetan).
+2. **Homogeneotasuna eta Estandarrak:**
+   * DTO klase bakoitzak bere fitxategi propioa du (`DTO/` karpetan), izen bera daramana.
+   * Kontsultetarako DTOak (`*Dto.cs`) eta eskaeretarako DTOak (`*SortuDto.cs`, `*KargatuDto.cs`) bereizita daude.
+3. **Logika kapsulatua kontroladoreetan:**
+   * Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/ErreserbakKontroladorea.cs)).
+
+---
+
+## Ezaugarri Tekniko Nagusiak
+
+- **Transakzio sendoak eta atomikoak:** `SELECT ... FOR UPDATE` blokeoak erreserbak egitean hutsuneak libre daudela ziurtatzeko eta bonoen saldoak aldi berean deskontatzeko (race conditions saihestuz).
+- **Salbuespenen kontrol zehatza:** MySQL 1062 (UNIQUE constraint) eta 1213 (Deadlock) erroreak kudeatzen dira rollback automatikoekin.
+- **Ezabaketa bikoitza (Soft eta Hard Delete):**
+  - **Soft Delete (`?hard=false`):** `ezabatua = TRUE`, pista libre uzten du baina datu historikoak gordeta mantentzen ditu. Pistak desgaitzean erlazionatutako erreserbak automatikoki desgaitzen dira.
+  - **Hard Delete (`?hard=true`):** Datu-basetik fisikoki ezabatzen du (`DELETE FROM`).
+  - **Restore (`PUT .../restore`):** Desgaitutako erreserbak, pistak eta bazkideak lehengoratzeko aukera.
+- **Bonoen sistema:** Bazkide bakoitzak saioak dituen bonoa erabil dezake erreserbak ordaintzeko (`erabiliBonoa=true`), saioak kargatzeko eta saldoak kudeatzeko.
+
+---
+
+## Bideak (26 Endpoints)
+
+Metodoen arabera ordenatuta:
+
+### 1. GET (9 endpoint)
 | Metodoa | Bidea | Deskribapena |
 |---|---|---|
-| **GET** | `/` | APIaren egoera eta bideen zerrenda |
+| **GET** | `/` | APIaren egoera eta 26 endpoint-en laburpena |
 | **GET** | `/api/pistak?barneEzabatuak=true` | Pista guztiak zerrendatu |
 | **GET** | `/api/pistak/{id}` | Pista zehatza ID bidez lortu |
-| **POST** | `/api/pistak` | Pista berria sortu |
-| **PUT** | `/api/pistak/{id}/restore` | Pista berreskuratu (Restore) |
-| **DELETE** | `/api/pistak/{id}?hard=false` | Soft Delete (pista logikoki ezabatu) |
-| **DELETE** | `/api/pistak/{id}?hard=true` | Hard Delete (pista behin betiko ezabatu) |
-| **GET** | `/api/bazkideak?barneEzabatuak=true` | Bazkide guztiak bono-saldoarekin |
-| **GET** | `/api/bazkideak/{id}` | Bazkide zehatza ID bidez lortu |
-| **POST** | `/api/bazkideak` | Bazkide berria sortu (bonoarekin) |
-| **PUT** | `/api/bazkideak/{id}/restore` | Bazkidea berreskuratu (Restore) |
-| **DELETE** | `/api/bazkideak/{id}?hard=false` | Soft Delete (bazkidea logikoki ezabatu) |
-| **DELETE** | `/api/bazkideak/{id}?hard=true` | Hard Delete (bazkidea behin betiko ezabatu) |
-| **GET** | `/api/bonoak` | Bonoen saldo guztiak |
-| **GET** | `/api/bonoak/{emaila}` | Bazkide baten bonoa lortu |
-| **POST** | `/api/bonoak` | Bono berria erosi/sortu |
-| **POST** | `/api/bonoak/{emaila}/erabili` | Bonoaren saio 1 kontsumitu |
-| **PUT** | `/api/bonoak/{emaila}/kargatu` | Bonoari saioak kargatu |
 | **GET** | `/api/erreserbak?barneEzabatuak=true` | Erreserba guztiak zerrendatu |
 | **GET** | `/api/erreserbak/{id}` | Erreserba zehatza ID bidez lortu |
-| **GET** | `/api/erreserbak/bazkideak` | Bazkide erreserbadunen zerrenda |
+| **GET** | `/api/erreserbak/bazkideak` | Soilik erreserba aktiboak dituzten bazkideak |
+| **GET** | `/api/bazkideak?barneEzabatuak=true` | Bazkide guztiak bono-saldoarekin |
+| **GET** | `/api/bazkideak/{id}` | Bazkide zehatza ID bidez lortu |
+| **GET** | `/api/bonoak` | Bono guztiak eta saio erabilgarriak |
+| **GET** | `/api/bonoak/{emaila}` | Bazkide baten bonoa lortu emailaren arabera |
+
+### 2. POST (6 endpoint)
+| Metodoa | Bidea | Deskribapena |
+|---|---|---|
+| **POST** | `/api/pistak` | Pista berria sortu |
 | **POST** | `/api/erreserbak` | Erreserba berria egin (Transakzioa + FOR UPDATE) |
-| **POST** | `/api/erreserbak?itxaron=5000` | Erreserba egin blokeo-simulazioarekin |
+| **POST** | `/api/erreserbak/transakzioa` | Erreserba transakzioarekin (`?itxaron=ms` simulazioarekin) |
+| **POST** | `/api/bazkideak` | Bazkide berria sortu (hasierako bonoarekin) |
+| **POST** | `/api/bonoak` | Bono berria erosi / sortu |
+| **POST** | `/api/bonoak/{emaila}/erabili` | Bonoaren saio 1 kontsumitu transakzioan |
+
+### 3. PUT (4 endpoint)
+| Metodoa | Bidea | Deskribapena |
+|---|---|---|
+| **PUT** | `/api/pistak/{id}/restore` | Pista berreskuratu (Restore) |
 | **PUT** | `/api/erreserbak/{id}/restore` | Erreserba berreskuratu (Restore) |
-| **DELETE** | `/api/erreserbak/{id}?hard=false` | Soft Delete (erreserba logikoki ezabatu) |
-| **DELETE** | `/api/erreserbak/{id}?hard=true` | Hard Delete (behin betiko ezabaketa) |
-| **DELETE** | `/api/erreserbak/garbitu` | Erreserba taula guztiz garbitu |
+| **PUT** | `/api/bazkideak/{id}/restore` | Bazkidea berreskuratu (Restore) |
+| **PUT** | `/api/bonoak/{emaila}/kargatu` | Bonoari saioak kargatu |
+
+### 4. DELETE (7 endpoint)
+| Metodoa | Bidea | Deskribapena |
+|---|---|---|
+| **DELETE** | `/api/pistak/{id}?hard=false` | Soft Delete (pista desgaitu eta erreserbak askatu) |
+| **DELETE** | `/api/pistak/{id}?hard=true` | Hard Delete (pista eta bere erreserbak betiko ezabatu) |
+| **DELETE** | `/api/erreserbak/{id}?hard=false` | Soft Delete (erreserba desgaitu eta pista askatu) |
+| **DELETE** | `/api/erreserbak/{id}?hard=true` | Hard Delete (erreserba behin betiko ezabatu) |
+| **DELETE** | `/api/erreserbak/garbitu` | Erreserba taula guztiz garbitu (probetarako) |
+| **DELETE** | `/api/bazkideak/{id}?hard=false` | Soft Delete (bazkidea logikoki ezabatu) |
+| **DELETE** | `/api/bazkideak/{id}?hard=true` | Hard Delete (bazkidea behin betiko ezabatu) |
 
 ---
 
 ## Proiektua Martxan Jartzeko
 
 1. **Datu-basea kargatu:**
-   MySQL-n `kiroldegia_db.sql` gidoia exekutatu:
+   MySQL-n `kiroldegia_db.sql` gidoia inportatu:
    ```bash
    mysql -u root -p < kiroldegia_db.sql
    ```
 
-2. **APIa abiarazi:**
+2. **APIa eraiki eta abiarazi:**
    ```bash
+   dotnet build
    dotnet run --project API_kiroldegia_db/API_kiroldegia_db.csproj
    ```
-   Lehenetsita `http://localhost:5089` helbidean entzungo du.
+   Nabigatzailean `http://localhost:5089/` helbidera joan APIaren egoera eta 26 endpoint-ak ikusteko.
 
 3. **Postman probak:**
-   Inportatu `Kiroldegia_API.postman_collection.json` fitxategia Postman-en. Eskaera guztiak 4 karpeta nagusitan daude antolatuta (`GET`, `POST`, `PUT`, `DELETE`).
-   Gida osoa eta zehatza ikusteko: 👉 **[POSTMAN_GIDA.md](./POSTMAN_GIDA.md)**.
+   Inportatu `Kiroldegia_API.postman_collection.json` fitxategia Postman aplikazioan. Eskaera guztiak metodoka antolatuta daude (`GET`, `POST`, `PUT`, `DELETE`).  
+   Gida osoa eta zehatza ikusteko: **[POSTMAN_GIDA.md](./POSTMAN_GIDA.md)**.

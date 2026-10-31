@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using API_kiroldegia_db.DTO;
 using API_kiroldegia_db.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -156,7 +156,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
         int itxaronMs = itxaron > 0 ? itxaron : dto.Itxaron;
         await using var kon = await SortuKonexioaAsync();
 
-        await dto.BeteDatuakAsync(kon);
+        await BeteDatuakAsync(dto, kon);
 
         if ((dto.PistaId ?? 0) <= 0 || (dto.BazkideaId ?? 0) <= 0)
             return BadRequestError("Datu guztiak beharrezkoak dira (pistaId/lekua eta bazkideaId/emaila zehaztu behar dira).");
@@ -232,7 +232,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 WHERE pista_id = @pista AND data = @data AND ordua = @ordua AND ezabatua = FALSE 
                 FOR UPDATE;", kon, tx);
 
-            ErreserbaSortuDto.GehituParametroak(cmdCheck, dto);
+            GehituErreserbaParametroak(cmdCheck, dto);
 
             long kopurua = Convert.ToInt64(await cmdCheck.ExecuteScalarAsync());
             if (kopurua > 0)
@@ -246,7 +246,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 INSERT INTO erreserba (pista_id, bazkidea_id, data, ordua, ezabatua) 
                 VALUES (@pista, @bazkidea, @data, @ordua, FALSE);", kon, tx);
 
-            ErreserbaSortuDto.GehituParametroak(cmdInsert, dto);
+            GehituErreserbaParametroak(cmdInsert, dto);
 
             await cmdInsert.ExecuteNonQueryAsync();
             long idBerria = cmdInsert.LastInsertedId;
@@ -267,7 +267,7 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
                 ? $" ({itxaronMs / 1000}s-ko blokeoa simulatu da)." 
                 : "";
 
-            var sortutakoErreserba = ErreserbaSortuDto.SortuErreserba((int)idBerria, dto);
+            var sortutakoErreserba = SortuErreserbaObjektua((int)idBerria, dto);
 
             return Created(new
             {
@@ -461,5 +461,88 @@ public class ErreserbakKontroladorea : BaseApiKontroladorea
         var cmd = new MySqlCommand("DELETE FROM erreserba;", kon);
         int kopurua = await cmd.ExecuteNonQueryAsync();
         return Success(new { mezua = $"Erreserba guztiak ezabatu dira ({kopurua} errenkada)." }, 200, "Erreserbak garbitu dira.");
+    }
+
+    // =========================================================================
+    // LAGUNTZAILE PRIBATUAK (DTO <-> Datu-basea eta modelo bihurketa)
+    // =========================================================================
+
+    /// <summary>
+    /// ID edo izen/email hutsuneak betetzen ditu datu-basetik kontsultatuz.
+    /// </summary>
+    private static async Task BeteDatuakAsync(ErreserbaSortuDto dto, MySqlConnection conn, MySqlTransaction? trans = null)
+    {
+        // PistaId badago baina Lekua ez, pistaren izena berreskuratu
+        if (string.IsNullOrWhiteSpace(dto.Lekua) && dto.PistaId.HasValue && dto.PistaId.Value > 0)
+        {
+            const string sqlP = "SELECT izena FROM pista WHERE id = @pid";
+            using var cmdP = new MySqlCommand(sqlP, conn, trans);
+            cmdP.Parameters.AddWithValue("@pid", dto.PistaId.Value);
+            var izena = await cmdP.ExecuteScalarAsync();
+            if (izena != null) dto.Lekua = izena.ToString() ?? "";
+        }
+        // Lekua badago baina PistaId ez, pistaren ID-a berreskuratu
+        else if (!string.IsNullOrWhiteSpace(dto.Lekua) && (!dto.PistaId.HasValue || dto.PistaId.Value <= 0))
+        {
+            const string sqlP = "SELECT id FROM pista WHERE izena = @izena LIMIT 1";
+            using var cmdP = new MySqlCommand(sqlP, conn, trans);
+            cmdP.Parameters.AddWithValue("@izena", dto.Lekua.Trim());
+            var pId = await cmdP.ExecuteScalarAsync();
+            if (pId != null) dto.PistaId = Convert.ToInt32(pId);
+        }
+
+        // BazkideaId badago baina Emaila ez, bazkidearen emaila berreskuratu
+        if (string.IsNullOrWhiteSpace(dto.Emaila) && dto.BazkideaId.HasValue && dto.BazkideaId.Value > 0)
+        {
+            const string sqlB = "SELECT emaila FROM bazkidea WHERE id = @bid";
+            using var cmdB = new MySqlCommand(sqlB, conn, trans);
+            cmdB.Parameters.AddWithValue("@bid", dto.BazkideaId.Value);
+            var email = await cmdB.ExecuteScalarAsync();
+            if (email != null) dto.Emaila = email.ToString() ?? "";
+        }
+        // Emaila badago baina BazkideaId ez, bazkidearen ID-a berreskuratu
+        else if (!string.IsNullOrWhiteSpace(dto.Emaila) && (!dto.BazkideaId.HasValue || dto.BazkideaId.Value <= 0))
+        {
+            const string sqlB = "SELECT id FROM bazkidea WHERE emaila = @email LIMIT 1";
+            using var cmdB = new MySqlCommand(sqlB, conn, trans);
+            cmdB.Parameters.AddWithValue("@email", dto.Emaila.Trim());
+            var bId = await cmdB.ExecuteScalarAsync();
+            if (bId != null) dto.BazkideaId = Convert.ToInt32(bId);
+        }
+
+        dto.Lekua = dto.Lekua?.Trim() ?? "";
+        dto.Emaila = dto.Emaila?.Trim() ?? "";
+    }
+
+    /// <summary>
+    /// DTOtik abiatuta Erreserba domeinu-eredua eraikitzen du.
+    /// </summary>
+    private static Erreserba SortuErreserbaObjektua(int id, ErreserbaSortuDto dto) => new()
+    {
+        Id = id,
+        PistaId = dto.PistaId ?? 0,
+        Lekua = dto.Lekua ?? "",
+        BazkideaId = dto.BazkideaId ?? 0,
+        Emaila = dto.Emaila ?? "",
+        Data = dto.Data,
+        Ordua = dto.Ordua,
+        Ezabatua = false,
+        EzabaketaData = null,
+        Sortua = DateTime.Now
+    };
+
+    /// <summary>
+    /// SQL komandoari erreserbaren parametro guztiak eransten dizkio.
+    /// </summary>
+    private static void GehituErreserbaParametroak(MySqlCommand cmd, ErreserbaSortuDto dto)
+    {
+        cmd.Parameters.AddWithValue("@pista", dto.PistaId ?? 0);
+        cmd.Parameters.AddWithValue("@pista_id", dto.PistaId ?? 0);
+        cmd.Parameters.AddWithValue("@bazkidea", dto.BazkideaId ?? 0);
+        cmd.Parameters.AddWithValue("@bazkidea_id", dto.BazkideaId ?? 0);
+        cmd.Parameters.AddWithValue("@lekua", dto.Lekua ?? "");
+        cmd.Parameters.AddWithValue("@data", dto.Data.ToDateTime(TimeOnly.MinValue));
+        cmd.Parameters.AddWithValue("@ordua", dto.Ordua.ToTimeSpan());
+        cmd.Parameters.AddWithValue("@emaila", dto.Emaila ?? "");
     }
 }

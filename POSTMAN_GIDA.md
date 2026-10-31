@@ -42,10 +42,10 @@ Postman-en eskaera guztiak karpetatan txukun sailkatuta edukitzeko, inportatu fi
 2. Goiko ezkerrean klikatu **`Import`** botoian.
 3. Arrastatu edo aukeratu `Kiroldegia_API.postman_collection.json` fitxategia.
 4. Ezkerreko panelean **"Ordiziako Kiroldegia API"** bilduma agertuko da, 4 karpeta nagusitan antolatuta:
-   - 📁 **1. GET Eskaerak (Irakurketa)** (10 eskaera)
-   - 📁 **2. POST Eskaerak (Sortzea & Transakzioak)** (6 eskaera)
-   - 📁 **3. PUT Eskaerak (Eguneratu & Berreskuratu)** (4 eskaera)
-   - 📁 **4. DELETE Eskaerak (Soft & Hard Delete)** (7 eskaera)
+   - **1. GET Eskaerak (Irakurketa)** (10 eskaera)
+   - **2. POST Eskaerak (Sortzea & Transakzioak)** (6 eskaera)
+   - **3. PUT Eskaerak (Eguneratu & Berreskuratu)** (4 eskaera)
+   - **4. DELETE Eskaerak (Soft & Hard Delete)** (7 eskaera)
 
 ---
 
@@ -53,7 +53,7 @@ Postman-en eskaera guztiak karpetatan txukun sailkatuta edukitzeko, inportatu fi
 
 APIak `http://localhost:5089` helbidean entzuten du (eta garapenean `http://localhost:5262`):
 
-### 📁 1. GET Eskaerak (Irakurketa)
+### 1. GET Eskaerak (Irakurketa)
 | # | Eskaera | Bidea (URL) | Deskribapena |
 |---|---|---|---|
 | 00 | **GET** | `/` | APIaren egoera orokorra eta endpoint zerrenda |
@@ -67,7 +67,7 @@ APIak `http://localhost:5089` helbidean entzuten du (eta garapenean `http://loca
 | 08 | **GET** | `/api/erreserbak/{id}` | Erreserba zehatz bat ID bidez lortu |
 | 09 | **GET** | `/api/erreserbak/bazkideak` | Soilik erreserbaren bat duten bazkideak |
 
-### 📁 2. POST Eskaerak (Sortzea & Transakzioak)
+### 2. POST Eskaerak (Sortzea & Transakzioak)
 | # | Eskaera | Bidea (URL) | Body (JSON) | Deskribapena |
 |---|---|---|---|---|
 | 01 | **POST** | `/api/pistak` | `{"izena": "Padel 2", "kirola": "Padela"}` | Pista berria txertatu |
@@ -77,7 +77,7 @@ APIak `http://localhost:5089` helbidean entzuten du (eta garapenean `http://loca
 | 05 | **POST** | `/api/erreserbak` | `{"pistaId": 1, "bazkideaId": 1, "data": "2026-10-28", "ordua": "18:00:00", "erabiliBonoa": true}` | **Erreserba egin transakzioan** (Bonoa deskontatuz eta FOR UPDATE bidez) |
 | 06 | **POST** | `/api/erreserbak?itxaron=5000` | `{"pistaId": 2, "bazkideaId": 2, ... "itxaron": 5000}` | **Konkurrentzia simulazioa:** 5 segundoko blokeoa probatzeko |
 
-### 📁 3. PUT Eskaerak (Eguneratu & Berreskuratu)
+### 3. PUT Eskaerak (Eguneratu & Berreskuratu)
 | # | Eskaera | Bidea (URL) | Body (JSON) | Deskribapena |
 |---|---|---|---|---|
 | 01 | **PUT** | `/api/bonoak/{emaila}/kargatu` | `{"saioak": 5}` | Bonoari saioak gehitu transakzioan |
@@ -85,7 +85,7 @@ APIak `http://localhost:5089` helbidean entzuten du (eta garapenean `http://loca
 | 03 | **PUT** | `/api/bazkideak/{id}/restore` | *(Hutsik)* | Soft-Delete egindako bazkidea berreskuratu |
 | 04 | **PUT** | `/api/erreserbak/{id}/restore` | *(Hutsik)* | Soft-Delete egindako erreserba berreskuratu |
 
-### 📁 4. DELETE Eskaerak (Soft & Hard Delete)
+### 4. DELETE Eskaerak (Soft & Hard Delete)
 | # | Eskaera | Bidea (URL) | Deskribapena |
 |---|---|---|---|
 | 01 | **DELETE** | `/api/pistak/{id}?hard=false` | **Pista Soft Delete:** Pista eta bere erreserbak logikoki desgaitu |

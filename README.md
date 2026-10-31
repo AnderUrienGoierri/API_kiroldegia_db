@@ -35,7 +35,9 @@ API_kiroldegia_db/
 │   │   ├── LortuBonoa.cs
 │   │   ├── SortuBonoa.cs
 │   │   ├── KargatuSaioak.cs
-│   │   └── ErabiliSaioa.cs
+│   │   ├── ErabiliSaioa.cs
+│   │   ├── EzabatuBonoa.cs
+│   │   └── BerreskuratuBonoa.cs
 │   └── Erreserbak/               # Erreserben transakzioak eta ekintzak (partial class)
 │       ├── ErreserbakKontroladorea.cs
 │       ├── LortuErreserbak.cs
@@ -97,7 +99,7 @@ C#-ko `partial class` mekanismoa erabiliz:
 - **Ezabaketa bikoitza (Soft eta Hard Delete):**
   - **Soft Delete (`?hard=false`):** `ezabatua = TRUE`, pista libre uzten du baina datu historikoak gordeta mantentzen ditu. Pistak desgaitzean erlazionatutako erreserbak automatikoki desgaitzen dira.
   - **Hard Delete (`?hard=true`):** Datu-basetik fisikoki ezabatzen du (`DELETE FROM`).
-  - **Restore (`PUT .../restore`):** Desgaitutako erreserbak, pistak eta bazkideak lehengoratzeko aukera.
+  - **Restore (`PUT .../restore`):** Desgaitutako erreserbak, pistak, bazkideak eta bonoak lehengoratzeko aukera.
 - **Bonoen sistema:** Bazkide bakoitzak saioak dituen bonoa erabil dezake erreserbak ordaintzeko (`erabiliBonoa=true`), saioak kargatzeko eta saldoak kudeatzeko.
 
 ---

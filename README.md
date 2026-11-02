@@ -47,15 +47,11 @@ API_kiroldegia_db/
 │       ├── EzabatuErreserba.cs
 │       ├── BerreskuratuErreserba.cs
 │       └── GarbituErreserbak.cs
-├── DTO/                          # Data Transfer Objects (POCO hutsak, 1 fitxategi = 1 klase)
-│   ├── PistaDto.cs               # Pista kontsultatzeko DTOa (GET)
-│   ├── PistaSortuDto.cs          # Pista berria sortzeko DTOa (POST)
-│   ├── BazkideaDto.cs            # Bazkidea kontsultatzeko DTOa (GET)
-│   ├── BazkideaSortuDto.cs       # Bazkide berria sortzeko DTOa (POST)
-│   ├── BonoDto.cs                # Bonoa kontsultatzeko DTOa (GET)
-│   ├── BonoKargatuDto.cs         # Bonoari saioak kargatzeko DTOa (PUT)
-│   ├── ErreserbaDto.cs           # Erreserba kontsultatzeko DTOa (GET)
-│   └── ErreserbaSortuDto.cs      # Erreserba berria eskatzeko DTOa (POST)
+├── DTO/                          # Data Transfer Objects (POCO hutsak, entitate bakoitzeko artxibo bat)
+│   ├── PistaDto.cs               # Pista kontsultatzeko (PistaDTO) eta sortzeko (PistaSortuDTO)
+│   ├── BazkideaDto.cs            # Bazkidea kontsultatzeko (BazkideaDTO) eta sortzeko (BazkideaSortuDTO)
+│   ├── BonoDto.cs                # Bonoa kontsultatzeko (BonoDTO) eta kargatzeko (BonoKargatuDTO)
+│   └── ErreserbaDto.cs           # Erreserba kontsultatzeko (ErreserbaDTO) eta sortzeko (ErreserbaSortuDto)
 ├── Models/                       # Domeinu-ereduak (MySQL taulekin 1:1 mapatuta)
 │   ├── Pista.cs                  # 'pista' taularen eredua
 │   ├── Bazkidea.cs               # 'bazkidea' taularen eredua
@@ -75,9 +71,9 @@ API_kiroldegia_db/
 1. **Ardura Bakarra (Single Responsibility Principle - SRP):**
    - DTOek **datuak soilik garraiatzen dituzte** (JSON eta C# propietateen artean).
    - DTOek **ez dute datu-baseko sarbiderik** (`MySqlConnection` edo `SELECT` kontsultarik ez dago DTOetan).
-2. **Homogeneotasuna eta Estandarrak:**
-   - DTO klase bakoitzak bere fitxategi propioa du (`DTO/` karpetan), izen bera daramana.
-   - Kontsultetarako DTOak (`*Dto.cs`) eta eskaeretarako DTOak (`*SortuDto.cs`, `*KargatuDto.cs`) bereizita daude.
+2. **Entitateen araberako antolaketa eta Homogeneotasuna:**
+   - DTOak entitate bakoitzeko fitxategi bakar batean bateratu dira (`DTO/` karpetan), `Models/` karpetako egiturekin 1:1 koherentzia mantenduz.
+   - Fitxategi bakoitzak entitate horri lotutako DTO guztiak biltzen ditu (kontsultarako zein sortzeko/kargatzeko DTOak).
 3. **Logika kapsulatua kontroladoreetan:**
    - Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituErreserbaParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/Erreserbak/ErreserbakKontroladorea.cs)).
 

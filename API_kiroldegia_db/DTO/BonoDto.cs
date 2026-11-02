@@ -10,3 +10,11 @@ public class BonoDTO
     public bool Ezabatua { get; set; }
     public DateTime? EzabaketaData { get; set; }
 }
+
+/// <summary>
+/// Bonoari saioak kargatzeko bidaltzen den DTOa (PUT).
+/// </summary>
+public class BonoKargatuDTO
+{
+    public int Saioak { get; set; }
+}

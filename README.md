@@ -68,6 +68,9 @@ API_kiroldegia_db/
 
 ## DTOen Diseinu-Printzipioak (Clean Design)
 
+> [!NOTE]
+> DTO, Model eta Controller osagaien arteko desberdintasunak, alderaketa-taula eta komunikazio-fluxu osoa ikusteko, kontsultatu gida zehatza: **[DTO_MODEL_CONTROLLER_GIDA.md](./DTO_MODEL_CONTROLLER_GIDA.md)**.
+
 1. **Ardura Bakarra (Single Responsibility Principle - SRP):**
    - DTOek **datuak soilik garraiatzen dituzte** (JSON eta C# propietateen artean).
    - DTOek **ez dute datu-baseko sarbiderik** (`MySqlConnection` edo `SELECT` kontsultarik ez dago DTOetan).

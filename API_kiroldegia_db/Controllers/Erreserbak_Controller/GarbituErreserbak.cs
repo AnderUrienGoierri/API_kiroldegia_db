@@ -12,7 +12,7 @@ public partial class ErreserbakKontroladorea
     public async Task<IActionResult> GarbituErreserbak()
     {
         await using var kon = await SortuKonexioaAsync();
-        var cmd = new MySqlCommand("DELETE FROM erreserba;", kon);
+        var cmd = new MySqlCommand("DELETE FROM erreserbak;", kon);
         int kopurua = await cmd.ExecuteNonQueryAsync();
         return Success(new { mezua = $"Erreserba guztiak ezabatu dira ({kopurua} errenkada)." }, 200, "Erreserbak garbitu dira.");
     }

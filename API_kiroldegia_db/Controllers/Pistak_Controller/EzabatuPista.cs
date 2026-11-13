@@ -19,7 +19,7 @@ public partial class PistakKontroladorea
         try
         {
             // 1. FOR UPDATE: Pista egiaztatu eta blokeatu
-            var cmdCheck = new MySqlCommand("SELECT id, izena, ezabatua FROM pista WHERE id = @id FOR UPDATE;", kon, tx);
+            var cmdCheck = new MySqlCommand("SELECT id, izena, ezabatua FROM pistak WHERE id = @id FOR UPDATE;", kon, tx);
             cmdCheck.Parameters.AddWithValue("@id", id);
             string pistaIzena = "";
             using (var reader = await cmdCheck.ExecuteReaderAsync())
@@ -43,12 +43,12 @@ public partial class PistakKontroladorea
             {
                 // HARD DELETE:
                 // Lehenengo pistaren erreserbak fisikoki ezabatu
-                var cmdErreserbakDel = new MySqlCommand("DELETE FROM erreserba WHERE pista_id = @id;", kon, tx);
+                var cmdErreserbakDel = new MySqlCommand("DELETE FROM erreserbak WHERE pista_id = @id;", kon, tx);
                 cmdErreserbakDel.Parameters.AddWithValue("@id", id);
                 int erreserbaKop = await cmdErreserbakDel.ExecuteNonQueryAsync();
 
                 // Ondoren pista bera ezabatu
-                var cmdPistaDel = new MySqlCommand("DELETE FROM pista WHERE id = @id;", kon, tx);
+                var cmdPistaDel = new MySqlCommand("DELETE FROM pistak WHERE id = @id;", kon, tx);
                 cmdPistaDel.Parameters.AddWithValue("@id", id);
                 await cmdPistaDel.ExecuteNonQueryAsync();
 
@@ -66,7 +66,7 @@ public partial class PistakKontroladorea
                 // SOFT DELETE:
                 // 1) Pista ezabatuta markatu
                 var cmdSoftPista = new MySqlCommand(@"
-                    UPDATE pista 
+                    UPDATE pistak 
                     SET ezabatua = TRUE, ezabaketa_data = NOW() 
                     WHERE id = @id;", kon, tx);
                 cmdSoftPista.Parameters.AddWithValue("@id", id);
@@ -74,7 +74,7 @@ public partial class PistakKontroladorea
 
                 // 2) Erlazionatutako erreserbak desgaituta (ezabatua=TRUE) bezala geratu behar dira
                 var cmdSoftErreserbak = new MySqlCommand(@"
-                    UPDATE erreserba 
+                    UPDATE erreserbak 
                     SET ezabatua = TRUE, ezabaketa_data = NOW() 
                     WHERE pista_id = @id AND ezabatua = FALSE;", kon, tx);
                 cmdSoftErreserbak.Parameters.AddWithValue("@id", id);

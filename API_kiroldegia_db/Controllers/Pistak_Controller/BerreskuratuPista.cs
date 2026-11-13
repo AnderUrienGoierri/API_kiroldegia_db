@@ -17,7 +17,7 @@ public partial class PistakKontroladorea
 
         try
         {
-            var cmdCheck = new MySqlCommand("SELECT id, izena, ezabatua FROM pista WHERE id = @id FOR UPDATE;", kon, tx);
+            var cmdCheck = new MySqlCommand("SELECT id, izena, ezabatua FROM pistak WHERE id = @id FOR UPDATE;", kon, tx);
             cmdCheck.Parameters.AddWithValue("@id", id);
             string pistaIzena = "";
             using (var reader = await cmdCheck.ExecuteReaderAsync())
@@ -37,7 +37,7 @@ public partial class PistakKontroladorea
                 }
             }
 
-            var cmdRestore = new MySqlCommand("UPDATE pista SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
+            var cmdRestore = new MySqlCommand("UPDATE pistak SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
             cmdRestore.Parameters.AddWithValue("@id", id);
             await cmdRestore.ExecuteNonQueryAsync();
 

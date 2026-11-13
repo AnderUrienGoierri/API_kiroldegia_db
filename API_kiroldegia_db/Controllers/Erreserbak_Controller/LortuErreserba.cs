@@ -17,9 +17,9 @@ public partial class ErreserbakKontroladorea
             SELECT e.id, e.pista_id, p.izena AS pista_izena, p.kirola,
                    e.bazkidea_id, CONCAT(b.izena, ' ', b.abizena) AS bazkidea_izena, b.emaila AS bazkidea_emaila,
                    e.data, e.ordua, e.ezabatua, e.ezabaketa_data, e.sortua
-            FROM erreserba e
-            JOIN pista p ON e.pista_id = p.id
-            JOIN bazkidea b ON e.bazkidea_id = b.id
+            FROM erreserbak e
+            JOIN pistak p ON e.pista_id = p.id
+            JOIN bazkideak b ON e.bazkidea_id = b.id
             WHERE e.id = @id;";
 
         using var cmd = new MySqlCommand(sql, kon);

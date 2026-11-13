@@ -1,7 +1,7 @@
-﻿namespace API_kiroldegia_db.Models
+namespace API_kiroldegia_db.Models
 {
     /// <summary>
-    /// Kiroldegiko bazkidearen domeinu-eredua (bazkidea taula).
+    /// Kiroldegiko bazkidearen domeinu-eredua (bazkideak taula).
     /// </summary>
     public class Bazkidea
     {

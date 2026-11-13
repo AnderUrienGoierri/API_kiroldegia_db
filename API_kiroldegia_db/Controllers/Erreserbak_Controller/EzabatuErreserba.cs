@@ -20,7 +20,7 @@ public partial class ErreserbakKontroladorea
         try
         {
             // 1. FOR UPDATE: Erregistroa blokeatu transakzioan
-            var cmdCheck = new MySqlCommand("SELECT id, ezabatua FROM erreserba WHERE id = @id FOR UPDATE;", kon, tx);
+            var cmdCheck = new MySqlCommand("SELECT id, ezabatua FROM erreserbak WHERE id = @id FOR UPDATE;", kon, tx);
             cmdCheck.Parameters.AddWithValue("@id", id);
             using (var reader = await cmdCheck.ExecuteReaderAsync())
             {
@@ -40,7 +40,7 @@ public partial class ErreserbakKontroladorea
 
             if (hard)
             {
-                var cmdHard = new MySqlCommand("DELETE FROM erreserba WHERE id = @id;", kon, tx);
+                var cmdHard = new MySqlCommand("DELETE FROM erreserbak WHERE id = @id;", kon, tx);
                 cmdHard.Parameters.AddWithValue("@id", id);
                 await cmdHard.ExecuteNonQueryAsync();
 
@@ -55,7 +55,7 @@ public partial class ErreserbakKontroladorea
             else
             {
                 var cmdSoft = new MySqlCommand(@"
-                    UPDATE erreserba 
+                    UPDATE erreserbak 
                     SET ezabatua = TRUE, ezabaketa_data = NOW() 
                     WHERE id = @id;", kon, tx);
                 cmdSoft.Parameters.AddWithValue("@id", id);

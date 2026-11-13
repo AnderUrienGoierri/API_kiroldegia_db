@@ -17,8 +17,8 @@ public partial class ErreserbakKontroladorea
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
             SELECT DISTINCT b.id, b.izena, b.abizena, b.emaila 
-            FROM bazkidea b 
-            JOIN erreserba e ON b.id = e.bazkidea_id 
+            FROM bazkideak b 
+            JOIN erreserbak e ON b.id = e.bazkidea_id 
             WHERE (@barne = TRUE OR e.ezabatua = FALSE)
             ORDER BY b.id;";
 

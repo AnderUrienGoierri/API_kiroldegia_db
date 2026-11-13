@@ -24,7 +24,7 @@ public partial class BazkideakKontroladorea
         try
         {
             // Emaila errepikatuta dagoen egiaztatu
-            var cmdCheck = new MySqlCommand("SELECT COUNT(*) FROM bazkidea WHERE emaila = @email;", kon, tx);
+            var cmdCheck = new MySqlCommand("SELECT COUNT(*) FROM bazkideak WHERE emaila = @email;", kon, tx);
             cmdCheck.Parameters.AddWithValue("@email", dto.Emaila.Trim().ToLower());
             long exist = Convert.ToInt64(await cmdCheck.ExecuteScalarAsync());
             if (exist > 0)
@@ -34,7 +34,7 @@ public partial class BazkideakKontroladorea
             }
 
             var cmdInsert = new MySqlCommand(@"
-                INSERT INTO bazkidea (izena, abizena, emaila)
+                INSERT INTO bazkideak (izena, abizena, emaila)
                 VALUES (@izena, @abizena, @email);", kon, tx);
             cmdInsert.Parameters.AddWithValue("@izena", dto.Izena.Trim());
             cmdInsert.Parameters.AddWithValue("@abizena", dto.Abizena.Trim());

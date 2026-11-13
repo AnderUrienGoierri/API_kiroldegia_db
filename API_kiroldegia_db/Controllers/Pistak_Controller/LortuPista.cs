@@ -13,7 +13,7 @@ public partial class PistakKontroladorea
     public async Task<IActionResult> LortuPista(int id)
     {
         await using var kon = await SortuKonexioaAsync();
-        using var cmd = new MySqlCommand("SELECT id, izena, kirola, ezabatua, ezabaketa_data FROM pista WHERE id = @id;", kon);
+        using var cmd = new MySqlCommand("SELECT id, izena, kirola, ezabatua, ezabaketa_data FROM pistak WHERE id = @id;", kon);
         cmd.Parameters.AddWithValue("@id", id);
 
         using var reader = await cmd.ExecuteReaderAsync();

@@ -16,7 +16,7 @@ public partial class BazkideakKontroladorea
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
             SELECT b.id, b.izena, b.abizena, b.emaila, b.ezabatua, b.ezabaketa_data, COALESCE(bo.saioak, 0) AS bono_saioak
-            FROM bazkidea b
+            FROM bazkideak b
             LEFT JOIN bonoak bo ON b.emaila = bo.emaila";
 
         if (!barneEzabatuak)

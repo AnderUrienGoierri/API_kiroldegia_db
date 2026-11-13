@@ -1,7 +1,7 @@
-﻿namespace API_kiroldegia_db.Models
+namespace API_kiroldegia_db.Models
 {
     /// <summary>
-    /// Kiroldegiko erreserbaren domeinu-eredua (erreserba taula).
+    /// Kiroldegiko erreserbaren domeinu-eredua (erreserbak taula).
     /// </summary>
     public class Erreserba
     {

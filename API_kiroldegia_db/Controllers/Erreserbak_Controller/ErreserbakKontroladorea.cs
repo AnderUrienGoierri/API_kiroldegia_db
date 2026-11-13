@@ -29,7 +29,7 @@ public partial class ErreserbakKontroladorea : BaseApiKontroladorea
         // PistaId badago baina Lekua ez, pistaren izena berreskuratu
         if (string.IsNullOrWhiteSpace(dto.Lekua) && dto.PistaId.HasValue && dto.PistaId.Value > 0)
         {
-            const string sqlP = "SELECT izena FROM pista WHERE id = @pid";
+            const string sqlP = "SELECT izena FROM pistak WHERE id = @pid";
             using var cmdP = new MySqlCommand(sqlP, conn, trans);
             cmdP.Parameters.AddWithValue("@pid", dto.PistaId.Value);
             var izena = await cmdP.ExecuteScalarAsync();
@@ -38,7 +38,7 @@ public partial class ErreserbakKontroladorea : BaseApiKontroladorea
         // Lekua badago baina PistaId ez, pistaren ID-a berreskuratu
         else if (!string.IsNullOrWhiteSpace(dto.Lekua) && (!dto.PistaId.HasValue || dto.PistaId.Value <= 0))
         {
-            const string sqlP = "SELECT id FROM pista WHERE izena = @izena LIMIT 1";
+            const string sqlP = "SELECT id FROM pistak WHERE izena = @izena LIMIT 1";
             using var cmdP = new MySqlCommand(sqlP, conn, trans);
             cmdP.Parameters.AddWithValue("@izena", dto.Lekua.Trim());
             var pId = await cmdP.ExecuteScalarAsync();
@@ -48,7 +48,7 @@ public partial class ErreserbakKontroladorea : BaseApiKontroladorea
         // BazkideaId badago baina Emaila ez, bazkidearen emaila berreskuratu
         if (string.IsNullOrWhiteSpace(dto.Emaila) && dto.BazkideaId.HasValue && dto.BazkideaId.Value > 0)
         {
-            const string sqlB = "SELECT emaila FROM bazkidea WHERE id = @bid";
+            const string sqlB = "SELECT emaila FROM bazkideak WHERE id = @bid";
             using var cmdB = new MySqlCommand(sqlB, conn, trans);
             cmdB.Parameters.AddWithValue("@bid", dto.BazkideaId.Value);
             var email = await cmdB.ExecuteScalarAsync();
@@ -57,7 +57,7 @@ public partial class ErreserbakKontroladorea : BaseApiKontroladorea
         // Emaila badago baina BazkideaId ez, bazkidearen ID-a berreskuratu
         else if (!string.IsNullOrWhiteSpace(dto.Emaila) && (!dto.BazkideaId.HasValue || dto.BazkideaId.Value <= 0))
         {
-            const string sqlB = "SELECT id FROM bazkidea WHERE emaila = @email LIMIT 1";
+            const string sqlB = "SELECT id FROM bazkideak WHERE emaila = @email LIMIT 1";
             using var cmdB = new MySqlCommand(sqlB, conn, trans);
             cmdB.Parameters.AddWithValue("@email", dto.Emaila.Trim());
             var bId = await cmdB.ExecuteScalarAsync();

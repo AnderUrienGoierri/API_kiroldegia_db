@@ -16,7 +16,7 @@ public partial class PistakKontroladorea
             return BadRequestError("Izena eta kirola beharrezkoak dira.");
 
         await using var kon = await SortuKonexioaAsync();
-        var cmd = new MySqlCommand("INSERT INTO pista (izena, kirola, ezabatua) VALUES (@izena, @kirola, FALSE);", kon);
+        var cmd = new MySqlCommand("INSERT INTO pistak (izena, kirola, ezabatua) VALUES (@izena, @kirola, FALSE);", kon);
         cmd.Parameters.AddWithValue("@izena", dto.Izena);
         cmd.Parameters.AddWithValue("@kirola", dto.Kirola);
         await cmd.ExecuteNonQueryAsync();

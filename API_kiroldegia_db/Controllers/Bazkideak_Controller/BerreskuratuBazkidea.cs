@@ -17,7 +17,7 @@ public partial class BazkideakKontroladorea
 
         try
         {
-            var cmdCheck = new MySqlCommand("SELECT id, izena, abizena, ezabatua FROM bazkidea WHERE id = @id FOR UPDATE;", kon, tx);
+            var cmdCheck = new MySqlCommand("SELECT id, izena, abizena, ezabatua FROM bazkideak WHERE id = @id FOR UPDATE;", kon, tx);
             cmdCheck.Parameters.AddWithValue("@id", id);
             string izena = "";
             bool ezabatua = false;
@@ -38,7 +38,7 @@ public partial class BazkideakKontroladorea
                 return BadRequestError($"[{id}] {izena} bazkidea jada aktibo dago, ez dago ezabatuta.");
             }
 
-            var cmdRestore = new MySqlCommand("UPDATE bazkidea SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
+            var cmdRestore = new MySqlCommand("UPDATE bazkideak SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
             cmdRestore.Parameters.AddWithValue("@id", id);
             await cmdRestore.ExecuteNonQueryAsync();
 

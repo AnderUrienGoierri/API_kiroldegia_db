@@ -22,7 +22,7 @@ public partial class ErreserbakKontroladorea
             string ordua;
             bool ezabatua;
 
-            var cmdGet = new MySqlCommand("SELECT pista_id, data, ordua, ezabatua FROM erreserba WHERE id = @id FOR UPDATE;", kon, tx);
+            var cmdGet = new MySqlCommand("SELECT pista_id, data, ordua, ezabatua FROM erreserbak WHERE id = @id FOR UPDATE;", kon, tx);
             cmdGet.Parameters.AddWithValue("@id", id);
             using (var reader = await cmdGet.ExecuteReaderAsync())
             {
@@ -43,7 +43,7 @@ public partial class ErreserbakKontroladorea
             }
 
             // Pista bera ezabatuta ez dagoela egiaztatu
-            var cmdPista = new MySqlCommand("SELECT ezabatua FROM pista WHERE id = @p FOR UPDATE;", kon, tx);
+            var cmdPista = new MySqlCommand("SELECT ezabatua FROM pistak WHERE id = @p FOR UPDATE;", kon, tx);
             cmdPista.Parameters.AddWithValue("@p", pistaId);
             bool pistaEzabatua = Convert.ToBoolean(await cmdPista.ExecuteScalarAsync());
             if (pistaEzabatua)
@@ -54,7 +54,7 @@ public partial class ErreserbakKontroladorea
 
             // Hutsunea tartean hartuta ote dagoen begiratu
             var cmdCheck = new MySqlCommand(@"
-                SELECT COUNT(*) FROM erreserba 
+                SELECT COUNT(*) FROM erreserbak 
                 WHERE pista_id = @p AND data = @d AND ordua = @o AND ezabatua = FALSE AND id != @id
                 FOR UPDATE;", kon, tx);
             cmdCheck.Parameters.AddWithValue("@p", pistaId);
@@ -70,7 +70,7 @@ public partial class ErreserbakKontroladorea
             }
 
             // Restore egin
-            var cmdRestore = new MySqlCommand("UPDATE erreserba SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
+            var cmdRestore = new MySqlCommand("UPDATE erreserbak SET ezabatua = FALSE, ezabaketa_data = NULL WHERE id = @id;", kon, tx);
             cmdRestore.Parameters.AddWithValue("@id", id);
             await cmdRestore.ExecuteNonQueryAsync();
 

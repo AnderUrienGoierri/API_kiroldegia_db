@@ -16,7 +16,7 @@ public partial class PistakKontroladorea
         await using var kon = await SortuKonexioaAsync();
         string sql = @"
             SELECT id, izena, kirola, ezabatua, ezabaketa_data 
-            FROM pista 
+            FROM pistak 
             WHERE (@barne = TRUE OR ezabatua = FALSE)
             ORDER BY id;";
 

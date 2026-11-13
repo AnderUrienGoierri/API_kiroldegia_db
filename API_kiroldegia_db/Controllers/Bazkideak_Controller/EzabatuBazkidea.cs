@@ -18,7 +18,7 @@ public partial class BazkideakKontroladorea
         try
         {
             // Bazkidea existitzen den egiaztatu
-            var cmdGet = new MySqlCommand("SELECT id, izena, abizena, emaila, ezabatua FROM bazkidea WHERE id = @id FOR UPDATE;", kon, tx);
+            var cmdGet = new MySqlCommand("SELECT id, izena, abizena, emaila, ezabatua FROM bazkideak WHERE id = @id FOR UPDATE;", kon, tx);
             cmdGet.Parameters.AddWithValue("@id", id);
             string izena = "";
             bool jadaEzabatua = false;
@@ -42,7 +42,7 @@ public partial class BazkideakKontroladorea
                     return BadRequestError($"[{id}] {izena} bazkidea lehendik ere Soft-Delete eginda dago.");
                 }
 
-                var cmdSoft = new MySqlCommand("UPDATE bazkidea SET ezabatua = TRUE, ezabaketa_data = NOW() WHERE id = @id;", kon, tx);
+                var cmdSoft = new MySqlCommand("UPDATE bazkideak SET ezabatua = TRUE, ezabaketa_data = NOW() WHERE id = @id;", kon, tx);
                 cmdSoft.Parameters.AddWithValue("@id", id);
                 await cmdSoft.ExecuteNonQueryAsync();
 
@@ -53,7 +53,7 @@ public partial class BazkideakKontroladorea
             {
                 // HARD DELETE:
                 // Erreserbarik baduen egiaztatu
-                var cmdRes = new MySqlCommand("SELECT COUNT(*) FROM erreserba WHERE bazkidea_id = @id;", kon, tx);
+                var cmdRes = new MySqlCommand("SELECT COUNT(*) FROM erreserbak WHERE bazkidea_id = @id;", kon, tx);
                 cmdRes.Parameters.AddWithValue("@id", id);
                 long resCount = Convert.ToInt64(await cmdRes.ExecuteScalarAsync());
                 if (resCount > 0)
@@ -63,7 +63,7 @@ public partial class BazkideakKontroladorea
                 }
 
                 // Bazkidea fisikoki ezabatu
-                var cmdDel = new MySqlCommand("DELETE FROM bazkidea WHERE id = @id;", kon, tx);
+                var cmdDel = new MySqlCommand("DELETE FROM bazkideak WHERE id = @id;", kon, tx);
                 cmdDel.Parameters.AddWithValue("@id", id);
                 await cmdDel.ExecuteNonQueryAsync();
 

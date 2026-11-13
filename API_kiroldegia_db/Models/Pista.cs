@@ -1,7 +1,7 @@
-﻿namespace API_kiroldegia_db.Models
+namespace API_kiroldegia_db.Models
 {
     /// <summary>
-    /// Kiroldegiko pistaren domeinu-eredua (pista taula).
+    /// Kiroldegiko pistaren domeinu-eredua (pistak taula).
     /// </summary>
     public class Pista
     {

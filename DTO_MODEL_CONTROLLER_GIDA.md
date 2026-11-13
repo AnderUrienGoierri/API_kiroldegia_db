@@ -91,3 +91,4 @@ Hasieran pentsa liteke errazagoa dela `Models/Erreserba.cs` zuzenean jasotzea ko
   - [BazkideaDto.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/DTO/BazkideaDto.cs) (`BazkideaDTO`, `BazkideaSortuDTO`)
   - [BonoDto.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/DTO/BonoDto.cs) (`BonoDTO`, `BonoKargatuDTO`)
   - [ErreserbaDto.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/DTO/ErreserbaDto.cs) (`ErreserbaDTO`, `ErreserbaSortuDto`)
+

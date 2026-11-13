@@ -9,7 +9,7 @@ public partial class ErreserbakKontroladorea
 {
     /// <summary>
     /// Erreserba berria txertatu transakzioen teoria aplikatuz:
-    /// - Pista aktibo dagoen egiaztatu (SELECT ezabatua FROM pista FOR UPDATE)
+    /// - Pista aktibo dagoen egiaztatu (SELECT ezabatua FROM pistak FOR UPDATE)
     /// - Bonoa egiaztatu eta saio 1 kendu (SELECT saioak FROM bonoak FOR UPDATE + UPDATE)
     /// - Hutsunea libre dagoen egiaztatu (SELECT COUNT(*) FOR UPDATE)
     /// - Txertatu (UNIQUE 1062 eta Deadlock 1213 salbuespenak kontrolatuz)
@@ -31,7 +31,7 @@ public partial class ErreserbakKontroladorea
         try
         {
             // 1. PISTA EGIAZTATU & BLOKEATU (Soft delete eginda badago, ezin da erreserbatu!)
-            var cmdPista = new MySqlCommand("SELECT izena, ezabatua FROM pista WHERE id = @pista FOR UPDATE;", kon, tx);
+            var cmdPista = new MySqlCommand("SELECT izena, ezabatua FROM pistak WHERE id = @pista FOR UPDATE;", kon, tx);
             cmdPista.Parameters.AddWithValue("@pista", dto.PistaId!.Value);
             string pistaIzena = "";
             using (var readerP = await cmdPista.ExecuteReaderAsync())
@@ -56,7 +56,7 @@ public partial class ErreserbakKontroladorea
             if (dto.ErabiliBonoa)
             {
                 // Bazkidearen emaila bilatu
-                var cmdBazk = new MySqlCommand("SELECT emaila FROM bazkidea WHERE id = @bazkidea FOR UPDATE;", kon, tx);
+                var cmdBazk = new MySqlCommand("SELECT emaila FROM bazkideak WHERE id = @bazkidea FOR UPDATE;", kon, tx);
                 cmdBazk.Parameters.AddWithValue("@bazkidea", dto.BazkideaId!.Value);
                 var emailObj = await cmdBazk.ExecuteScalarAsync();
                 if (emailObj == null || emailObj == DBNull.Value || string.IsNullOrWhiteSpace(emailObj.ToString()))
@@ -93,7 +93,7 @@ public partial class ErreserbakKontroladorea
 
             // 3. FOR UPDATE: Erreserba eginda dagoen begiratu transakzio barruan (soilik ezabatua ez bada)
             var cmdCheck = new MySqlCommand(@"
-                SELECT COUNT(*) FROM erreserba 
+                SELECT COUNT(*) FROM erreserbak 
                 WHERE pista_id = @pista AND data = @data AND ordua = @ordua AND ezabatua = FALSE 
                 FOR UPDATE;", kon, tx);
 
@@ -108,7 +108,7 @@ public partial class ErreserbakKontroladorea
 
             // 4. Libre badago: erreserba txertatu transakzio barruan
             var cmdInsert = new MySqlCommand(@"
-                INSERT INTO erreserba (pista_id, bazkidea_id, data, ordua, ezabatua) 
+                INSERT INTO erreserbak (pista_id, bazkidea_id, data, ordua, ezabatua) 
                 VALUES (@pista, @bazkidea, @data, @ordua, FALSE);", kon, tx);
 
             GehituErreserbaParametroak(cmdInsert, dto);

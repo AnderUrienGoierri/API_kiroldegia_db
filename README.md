@@ -15,21 +15,21 @@ Proiektua arduren banaketa garbia jarraituz antolatuta dago. Karpetak eta klasea
 API_kiroldegia_db/
 ├── Controllers/                  # API kontroladoreak karpetatan eta ekintzaka banatuta
 │   ├── BaseApiKontroladorea.cs   # Oinarrizko kontroladorea (erantzun bateratuak)
-│   ├── Pistak/                   # Pistak kudeatzeko ekintzak (partial class)
+│   ├── Pistak_Controller/        # Pistak kudeatzeko ekintzak (partial class)
 │   │   ├── PistakKontroladorea.cs
 │   │   ├── LortuPistak.cs
 │   │   ├── LortuPista.cs
 │   │   ├── SortuPista.cs
 │   │   ├── EzabatuPista.cs
 │   │   └── BerreskuratuPista.cs
-│   ├── Bazkideak/                # Bazkideak kudeatzeko ekintzak (partial class)
+│   ├── Bazkideak_Controller/     # Bazkideak kudeatzeko ekintzak (partial class)
 │   │   ├── BazkideakKontroladorea.cs
 │   │   ├── LortuBazkideak.cs
 │   │   ├── LortuBazkidea.cs
 │   │   ├── SortuBazkidea.cs
 │   │   ├── EzabatuBazkidea.cs
 │   │   └── BerreskuratuBazkidea.cs
-│   ├── Bonoak/                   # Bonoak kudeatzeko ekintzak (partial class)
+│   ├── Bonoak_Controller/        # Bonoak kudeatzeko ekintzak (partial class)
 │   │   ├── BonoakKontroladorea.cs
 │   │   ├── LortuBonoak.cs
 │   │   ├── LortuBonoa.cs
@@ -38,7 +38,7 @@ API_kiroldegia_db/
 │   │   ├── ErabiliSaioa.cs
 │   │   ├── EzabatuBonoa.cs
 │   │   └── BerreskuratuBonoa.cs
-│   └── Erreserbak/               # Erreserben transakzioak eta ekintzak (partial class)
+│   └── Erreserbak_Controller/    # Erreserben transakzioak eta ekintzak (partial class)
 │       ├── ErreserbakKontroladorea.cs
 │       ├── LortuErreserbak.cs
 │       ├── LortuErreserba.cs
@@ -78,13 +78,13 @@ API_kiroldegia_db/
    - DTOak entitate bakoitzeko fitxategi bakar batean bateratu dira (`DTO/` karpetan), `Models/` karpetako egiturekin 1:1 koherentzia mantenduz.
    - Fitxategi bakoitzak entitate horri lotutako DTO guztiak biltzen ditu (kontsultarako zein sortzeko/kargatzeko DTOak).
 3. **Logika kapsulatua kontroladoreetan:**
-   - Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituErreserbaParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/Erreserbak/ErreserbakKontroladorea.cs)).
+   - Datuak osatzeko (`BeteDatuakAsync`), parametroak gehitzeko (`GehituErreserbaParametroak`) eta ereduak eraikitzeko metodoak kontroladoreari dagozkio eta metodo laguntzaile pribatu gisa kapsulatuta daude ([ErreserbakKontroladorea.cs](file:///c:/Dev/GoierriEskola/2_maila/0486-Datu-atzipena/1_ebaluaketa/6-transakzioak/ariketak/10_jarraipena/API_kiroldegia_db/API_kiroldegia_db/Controllers/Erreserbak_Controller/ErreserbakKontroladorea.cs)).
 
 ---
 
 ## Kontroladoreen Egitura Modularra (Partial Classes)
 
-Kontroladore bakoitza bere baliabidearen araberako karpeta batean antolatu da (`Controllers/Pistak/`, `Controllers/Bazkideak/`, `Controllers/Bonoak/` eta `Controllers/Erreserbak/`).
+Kontroladore bakoitza bere baliabidearen araberako karpeta batean antolatu da (`Controllers/Pistak_Controller/`, `Controllers/Bazkideak_Controller/`, `Controllers/Bonoak_Controller/` eta `Controllers/Erreserbak_Controller/`).
 C#-ko `partial class` mekanismoa erabiliz:
 
 - Karpetako kontroladore nagusiak (`*Kontroladorea.cs`) ibilbidearen (`[Route]`) konfigurazioa, mendekotasun-injekzioa (`ILogger`, `IConfiguration`) eta klasearen oinarrizko definizioa dauzka.
